@@ -3,7 +3,6 @@ import { Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { useKeepAwake } from 'expo-keep-awake';
 import {
   AudioModule,
   RecordingPresets,
@@ -15,6 +14,7 @@ import {
 import { File, Paths } from 'expo-file-system';
 import { colors, radius, spacing, type } from '@/lib/design';
 import { formatClock } from '@/lib/schedule';
+import { cancel, scheduleFocusEnd } from '@/lib/notifications';
 import { recallTargetMs, saveSession, type RecallMode } from '@/lib/sessions';
 import { AppText, Button } from '@/components/cal';
 
@@ -35,15 +35,12 @@ export default function RunScreen() {
   const flow = params.flow === '1';
   const topicId = params.topicId ?? null;
 
-  // Keep the screen on for the whole session — otherwise Android sleeps, JS
-  // pauses, and the end-of-focus chime fires late (on wake) instead of on time.
-  useKeepAwake();
-
   const [phase, setPhase] = useState<Phase>('study');
   const [now, setNow] = useState(Date.now());
   const studyStart = useRef(Date.now());
   const recallStart = useRef<number | null>(null);
   const cued = useRef(false);
+  const focusNotifId = useRef<string | null>(null);
   const [studyMs, setStudyMs] = useState(0);
 
   // Recall capture
@@ -61,6 +58,27 @@ export default function RunScreen() {
     setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
   }, []);
 
+  // Schedule an OS notification for the goal time so the cue fires even if the
+  // screen sleeps and JS pauses — no need to keep the screen on (saves battery).
+  useEffect(() => {
+    let stale = false;
+    scheduleFocusEnd(label, plannedMs).then((id) => {
+      if (stale) cancel(id);
+      else focusNotifId.current = id;
+    });
+    return () => {
+      stale = true;
+      cancel(focusNotifId.current);
+      focusNotifId.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function cancelFocusNotif() {
+    cancel(focusNotifId.current);
+    focusNotifId.current = null;
+  }
+
   // 250ms ticker drives both timers.
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 250);
@@ -75,6 +93,7 @@ export default function RunScreen() {
     if (phase !== 'study' || cued.current) return;
     if (studyElapsed >= plannedMs) {
       cued.current = true;
+      cancelFocusNotif(); // foreground reached the goal — the in-app chime covers it
       chime.seekTo(0);
       chime.play();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
@@ -84,6 +103,7 @@ export default function RunScreen() {
   }, [studyElapsed, phase]);
 
   function endStudy(ms: number) {
+    cancelFocusNotif(); // moving on — don't let a stale goal alert fire mid-recall
     setStudyMs(ms);
     setPhase('pick');
   }

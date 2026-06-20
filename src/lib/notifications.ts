@@ -27,6 +27,7 @@ function getModule(): NotificationsModule | null {
 }
 
 let channelReady = false;
+let focusChannelReady = false;
 
 async function ensureAndroidChannel(N: NotificationsModule) {
   if (Platform.OS !== 'android' || channelReady) return;
@@ -35,6 +36,15 @@ async function ensureAndroidChannel(N: NotificationsModule) {
     importance: N.AndroidImportance.DEFAULT,
   });
   channelReady = true;
+}
+
+async function ensureFocusChannel(N: NotificationsModule) {
+  if (Platform.OS !== 'android' || focusChannelReady) return;
+  await N.setNotificationChannelAsync('focus', {
+    name: 'Focus timer',
+    importance: N.AndroidImportance.HIGH, // heads-up + sound when the goal lands
+  });
+  focusChannelReady = true;
 }
 
 export async function ensurePermission(): Promise<boolean> {
@@ -80,6 +90,55 @@ export async function scheduleForTopic(
     });
   } catch {
     return null;
+  }
+}
+
+// Fire a sound/heads-up notification when a focus session reaches its goal, so
+// the cue lands even if the screen has slept and JS is paused. Returns the id.
+export async function scheduleFocusEnd(label: string, ms: number): Promise<string | null> {
+  const N = getModule();
+  if (!N || ms <= 0) return null;
+  try {
+    await ensureFocusChannel(N);
+    return await N.scheduleNotificationAsync({
+      content: {
+        title: 'Focus complete',
+        body: label ? `Time to recall — ${label}.` : 'Time to recall what you studied.',
+        sound: true,
+      },
+      trigger: {
+        type: N.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: Math.max(1, Math.round(ms / 1000)),
+        channelId: 'focus',
+      },
+    });
+  } catch {
+    return null;
+  }
+}
+
+// Fire a notification a few seconds out so reminders can be verified instantly.
+export async function sendTestReminder(): Promise<boolean> {
+  const N = getModule();
+  if (!N) return false;
+  if (!(await ensurePermission())) return false;
+  try {
+    await ensureAndroidChannel(N);
+    await N.scheduleNotificationAsync({
+      content: {
+        title: 'Test reminder ✅',
+        body: 'Reminders work. You’ll get one like this when a topic is due.',
+        sound: true,
+      },
+      trigger: {
+        type: N.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: 5,
+        channelId: 'reviews',
+      },
+    });
+    return true;
+  } catch {
+    return false;
   }
 }
 

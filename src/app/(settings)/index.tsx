@@ -2,7 +2,7 @@ import { Alert, Pressable, Switch, View } from 'react-native';
 import { colors, radius, spacing } from '@/lib/design';
 import { formatHour, INTERVALS } from '@/lib/schedule';
 import { computeStats } from '@/lib/stats';
-import { remindersAvailable } from '@/lib/notifications';
+import { remindersAvailable, sendTestReminder } from '@/lib/notifications';
 import { exportBackup, importBackup } from '@/lib/backup';
 import {
   setReminderHour,
@@ -73,6 +73,15 @@ function onImport() {
       },
     ]
   );
+}
+
+async function onTestReminder() {
+  const ok = await sendTestReminder();
+  if (ok) {
+    Alert.alert('Test sent', 'A notification will arrive in about 5 seconds.');
+  } else {
+    Alert.alert('Could not send', 'Notification permission is off, or this is Expo Go.');
+  }
 }
 
 export default function SettingsScreen() {
@@ -148,6 +157,15 @@ export default function SettingsScreen() {
               />
             </View>
           </View>
+        )}
+
+        {on && (
+          <Button
+            title="Send test reminder"
+            variant="secondary"
+            onPress={onTestReminder}
+            style={{ marginTop: spacing.xxs }}
+          />
         )}
       </Card>
 
