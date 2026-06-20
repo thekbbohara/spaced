@@ -44,3 +44,8 @@ example
 
 # Claude Code local config
 .claude/
+
+# Upload keystore credentials — never commit
+android/keystore.properties
+*.jks
+*.keystore
