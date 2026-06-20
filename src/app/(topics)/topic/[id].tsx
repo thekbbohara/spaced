@@ -5,6 +5,8 @@ import { INTERVALS, formatDate, formatRelativeDay } from '@/lib/schedule';
 import { deleteTopic, useTopic } from '@/lib/topics';
 import { AppText, Badge, Button, Card, Screen, StageDots } from '@/components/cal';
 import { ReviewCard } from '@/components/topic-card';
+import { TopicMaterial } from '@/components/topic-material';
+import { TopicCards } from '@/components/topic-cards';
 
 export default function TopicDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -20,6 +22,7 @@ export default function TopicDetail() {
   }
 
   const due =
+    (topic.cards?.length ?? 0) === 0 &&
     !topic.mastered &&
     topic.nextReviewAt != null &&
     new Date(topic.nextReviewAt).getTime() <= Date.now();
@@ -92,6 +95,10 @@ export default function TopicDetail() {
       </Card>
 
       {due && <ReviewCard topic={topic} />}
+
+      <TopicCards topic={topic} />
+
+      <TopicMaterial topic={topic} />
 
       <AppText variant="titleMd" style={{ marginTop: spacing.xs }}>
         History

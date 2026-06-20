@@ -17,6 +17,15 @@ export default function TopicsLayout() {
         name="edit/[id]"
         options={{ title: 'Edit topic', presentation: 'modal', headerLargeTitle: false }}
       />
+      <Stack.Screen
+        name="material/[id]"
+        options={{ presentation: 'modal', headerLargeTitle: false }}
+      />
+      <Stack.Screen name="cards/[id]" options={{ title: 'Cards', headerLargeTitle: false }} />
+      <Stack.Screen
+        name="study/[id]"
+        options={{ headerShown: false, presentation: 'fullScreenModal' }}
+      />
     </Stack>
   );
 }

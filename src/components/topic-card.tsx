@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { colors, radius, spacing } from '@/lib/design';
 import { INTERVALS, formatRelativeDay } from '@/lib/schedule';
 import { reviewTopic, type Topic } from '@/lib/topics';
@@ -90,9 +90,11 @@ export function ReviewCard({ topic }: { topic: Topic }) {
 
 // A compact row used in lists, linking to the topic detail.
 export function TopicRow({ topic }: { topic: Topic }) {
+  const router = useRouter();
+  const cardCount = topic.cards?.length ?? 0;
   return (
-    <Link href={`/topic/${topic.id}`} asChild>
       <Pressable
+        onPress={() => router.push(`/topic/${topic.id}`)}
         style={({ pressed }) => ({
           flexDirection: 'row',
           alignItems: 'center',
@@ -122,15 +124,16 @@ export function TopicRow({ topic }: { topic: Topic }) {
             {topic.title}
           </AppText>
           <AppText variant="caption" color={colors.muted}>
-            {topic.mastered
-              ? `Mastered · ${topic.history.length} reviews`
-              : `Stage ${topic.stage + 1}/${INTERVALS.length} · ${formatRelativeDay(topic.nextReviewAt)}`}
+            {cardCount > 0
+              ? `${cardCount} cards`
+              : topic.mastered
+                ? `Mastered · ${topic.history.length} reviews`
+                : `Stage ${topic.stage + 1}/${INTERVALS.length} · ${formatRelativeDay(topic.nextReviewAt)}`}
           </AppText>
         </View>
         <AppText variant="bodyMd" color={colors.mutedSoft}>
           ›
         </AppText>
       </Pressable>
-    </Link>
   );
 }

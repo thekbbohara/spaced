@@ -24,6 +24,12 @@ export function computeStats(topics: Topic[], on: Date = new Date()): Stats {
       totalReviews += 1;
       if (r.remembered) remembered += 1;
     }
+    for (const c of t.cards ?? []) {
+      if (c.lastReviewedAt) {
+        active.add(dayKey(c.lastReviewedAt));
+        totalReviews += 1;
+      }
+    }
   }
 
   // Count back from today; allow the streak to "hold" if today isn't logged yet.
