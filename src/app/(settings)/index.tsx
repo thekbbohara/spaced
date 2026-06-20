@@ -1,15 +1,16 @@
-import { Pressable, Switch, View } from 'react-native';
+import { Alert, Pressable, Switch, View } from 'react-native';
 import { colors, radius, spacing } from '@/lib/design';
 import { formatHour, INTERVALS } from '@/lib/schedule';
 import { computeStats } from '@/lib/stats';
 import { remindersAvailable } from '@/lib/notifications';
+import { exportBackup, importBackup } from '@/lib/backup';
 import {
   setReminderHour,
   setRemindersEnabled,
   useSettings,
   useTopics,
 } from '@/lib/topics';
-import { AppText, Card, Screen } from '@/components/cal';
+import { AppText, Button, Card, Screen } from '@/components/cal';
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
@@ -40,6 +41,37 @@ function StepperButton({ label, onPress }: { label: string; onPress: () => void 
     >
       <AppText variant="titleMd">{label}</AppText>
     </Pressable>
+  );
+}
+
+async function onExport() {
+  try {
+    const ok = await exportBackup();
+    if (!ok) Alert.alert('Sharing unavailable', 'Cannot open the share sheet on this device.');
+  } catch (e) {
+    Alert.alert('Export failed', e instanceof Error ? e.message : String(e));
+  }
+}
+
+function onImport() {
+  Alert.alert(
+    'Restore backup?',
+    'This replaces your current topics, cards and settings with the backup file.',
+    [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Choose file',
+        onPress: async () => {
+          try {
+            const res = await importBackup();
+            if (res.cancelled) return;
+            Alert.alert('Restored', `${res.topics} topic${res.topics === 1 ? '' : 's'} imported.`);
+          } catch (e) {
+            Alert.alert('Import failed', e instanceof Error ? e.message : String(e));
+          }
+        },
+      },
+    ]
   );
 }
 
@@ -117,6 +149,30 @@ export default function SettingsScreen() {
             </View>
           </View>
         )}
+      </Card>
+
+      <AppText variant="titleMd" style={{ marginTop: spacing.xs }}>
+        Backup
+      </AppText>
+      <Card tone="canvas">
+        <AppText variant="bodySm" color={colors.muted}>
+          Your topics and cards live only on this device. Export a backup file
+          and keep it safe — restore it on a new phone or after reinstalling.
+        </AppText>
+        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <Button
+            title="Export backup"
+            variant="secondary"
+            style={{ flex: 1 }}
+            onPress={onExport}
+          />
+          <Button
+            title="Restore"
+            variant="secondary"
+            style={{ flex: 1 }}
+            onPress={onImport}
+          />
+        </View>
       </Card>
 
       <AppText variant="titleMd" style={{ marginTop: spacing.xs }}>
