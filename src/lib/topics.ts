@@ -31,7 +31,12 @@ export type Card = {
   lastReviewedAt: string | null;
   nextReviewAt: string | null;
   mastered: boolean;
+  starred?: boolean;
+  introducedAt?: string | null; // first time the card was graded; gates new-per-hour
 };
+
+// At most this many brand-new cards enter due/study within a rolling hour.
+export const NEW_PER_HOUR = 10;
 
 export type NoteResource = { id: string; type: 'note'; text: string; createdAt: string };
 export type LinkResource = {
@@ -212,6 +217,8 @@ function makeCard(front: string, back: string): Card {
     lastReviewedAt: null,
     nextReviewAt: startOfDay(new Date()).toISOString(), // new cards are due now
     mastered: false,
+    starred: false,
+    introducedAt: null,
   };
 }
 
@@ -246,6 +253,15 @@ export function deleteCard(topicId: string, cardIdValue: string) {
   }));
 }
 
+export function toggleStar(topicId: string, cardIdValue: string) {
+  mutateTopic(topicId, (t) => ({
+    ...t,
+    cards: (t.cards ?? []).map((c) =>
+      c.id === cardIdValue ? { ...c, starred: !c.starred } : c
+    ),
+  }));
+}
+
 export function gradeCard(topicId: string, cardIdValue: string, good: boolean) {
   const now = new Date();
   mutateTopic(topicId, (t) => ({
@@ -259,9 +275,39 @@ export function gradeCard(topicId: string, cardIdValue: string, good: boolean) {
           ? null
           : startOfDay(addDays(now, intervalForStage(stage))).toISOString()
         : startOfDay(now).toISOString(); // "Again" → still due today
-      return { ...c, stage, mastered, lastReviewedAt: now.toISOString(), nextReviewAt };
+      return {
+        ...c,
+        stage,
+        mastered,
+        lastReviewedAt: now.toISOString(),
+        nextReviewAt,
+        introducedAt: c.introducedAt ?? now.toISOString(),
+      };
     }),
   }));
+}
+
+function isNewCard(card: Card): boolean {
+  return card.introducedAt == null;
+}
+
+// Due cards, but gated so at most NEW_PER_HOUR brand-new cards surface within a
+// rolling hour. Review cards (already introduced) are never gated.
+export function availableCards(topic: Topic, on: Date = new Date()): Card[] {
+  const due = dueCards(topic, on);
+  const hourAgo = on.getTime() - 60 * 60 * 1000;
+  const introducedThisHour = (topic.cards ?? []).filter(
+    (c) => c.introducedAt != null && new Date(c.introducedAt).getTime() >= hourAgo
+  ).length;
+  let budget = Math.max(0, NEW_PER_HOUR - introducedThisHour);
+  return due.filter((c) => {
+    if (!isNewCard(c)) return true;
+    if (budget > 0) {
+      budget -= 1;
+      return true;
+    }
+    return false;
+  });
 }
 
 export function isCardDue(card: Card, on: Date = new Date()): boolean {
@@ -278,7 +324,9 @@ export function cardCounts(topic: Topic, on: Date = new Date()) {
   return {
     total: cards.length,
     due: cards.filter((c) => isCardDue(c, on)).length,
+    available: availableCards(topic, on).length,
     mastered: cards.filter((c) => c.mastered).length,
+    starred: cards.filter((c) => c.starred).length,
   };
 }
 

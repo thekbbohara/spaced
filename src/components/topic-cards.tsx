@@ -6,7 +6,7 @@ import { AppText, Button, Card } from './cal';
 
 export function TopicCards({ topic }: { topic: Topic }) {
   const router = useRouter();
-  const { total, due, mastered } = cardCounts(topic);
+  const { total, due, available, mastered, starred } = cardCounts(topic);
 
   return (
     <View style={{ gap: spacing.sm }}>
@@ -33,14 +33,16 @@ export function TopicCards({ topic }: { topic: Topic }) {
             <Stat value={total - mastered} label="Learning" />
             <Stat value={mastered} label="Mastered" />
           </View>
-          {due > 0 ? (
+          {available > 0 ? (
             <Button
-              title={`▶  Study ${due} due card${due === 1 ? '' : 's'}`}
+              title={`▶  Study ${available} due card${available === 1 ? '' : 's'}`}
               onPress={() => router.push(`/study/${topic.id}?due=1`)}
             />
           ) : (
             <AppText variant="bodySm" color={colors.muted}>
-              All caught up. Next cards come back on schedule.
+              {due > 0
+                ? `${due} due, but new cards are paced (10/hour). Check back soon.`
+                : 'All caught up. Next cards come back on schedule.'}
             </AppText>
           )}
         </Card>
@@ -55,13 +57,21 @@ export function TopicCards({ topic }: { topic: Topic }) {
         />
         {total > 0 ? (
           <Button
-            title="Study all"
+            title="🔀 Shuffle all"
             variant="secondary"
             style={{ flex: 1 }}
-            onPress={() => router.push(`/study/${topic.id}`)}
+            onPress={() => router.push(`/study/${topic.id}?shuffle=1`)}
           />
         ) : null}
       </View>
+
+      {starred > 0 ? (
+        <Button
+          title={`★ Study ${starred} starred`}
+          variant="secondary"
+          onPress={() => router.push(`/study/${topic.id}?starred=1&shuffle=1`)}
+        />
+      ) : null}
     </View>
   );
 }

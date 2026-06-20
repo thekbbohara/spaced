@@ -3,7 +3,7 @@ import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, radius, spacing } from '@/lib/design';
 import { computeStats } from '@/lib/stats';
-import { dueCards, isDue, isStudiedToday, undoReview, useTopics, useUndo } from '@/lib/topics';
+import { availableCards, isDue, isStudiedToday, undoReview, useTopics, useUndo } from '@/lib/topics';
 import { AppText, Button, Card, Screen } from '@/components/cal';
 import { ReviewCard } from '@/components/topic-card';
 
@@ -41,7 +41,7 @@ export default function TodayScreen() {
   const { due, decks, dueCardTotal, studiedToday, masteredCount, stats } = useMemo(() => {
     const now = new Date();
     const decks = topics
-      .map((t) => ({ topic: t, count: dueCards(t, now).length }))
+      .map((t) => ({ topic: t, count: availableCards(t, now).length }))
       .filter((d) => d.count > 0);
     return {
       due: topics.filter((t) => isDue(t, now)),

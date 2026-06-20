@@ -2,15 +2,24 @@ import { useMemo, useState } from 'react';
 import { Alert, Pressable, TextInput, View } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { colors, radius, spacing, type } from '@/lib/design';
+import { INTERVALS, formatRelativeDay } from '@/lib/schedule';
 import {
   addCard,
   addCards,
   CARD_SEPARATORS,
   deleteCard,
   parseCards,
+  toggleStar,
   useTopic,
+  type Card as CardType,
 } from '@/lib/topics';
 import { AppText, Button, Card, Screen } from '@/components/cal';
+
+function cardStatus(c: CardType): string {
+  if (c.mastered) return 'Mastered';
+  if (c.lastReviewedAt == null) return 'New';
+  return `Stage ${c.stage + 1}/${INTERVALS.length} · ${formatRelativeDay(c.nextReviewAt)}`;
+}
 
 const inputStyle = {
   ...type.bodyMd,
@@ -142,19 +151,37 @@ export default function CardsScreen() {
                 borderCurve: 'continuous',
                 padding: spacing.md,
                 flexDirection: 'row',
+                alignItems: 'center',
                 gap: spacing.sm,
               })}
             >
-              <AppText variant="titleSm" style={{ flex: 1 }} numberOfLines={1}>
-                {c.front}
-              </AppText>
-              <AppText variant="bodySm" color={colors.muted} style={{ flex: 1 }} numberOfLines={1}>
-                {c.back}
-              </AppText>
+              <View style={{ flex: 1, gap: 2 }}>
+                <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                  <AppText variant="titleSm" style={{ flex: 1 }} numberOfLines={1}>
+                    {c.front}
+                  </AppText>
+                  <AppText
+                    variant="bodySm"
+                    color={colors.muted}
+                    style={{ flex: 1 }}
+                    numberOfLines={1}
+                  >
+                    {c.back}
+                  </AppText>
+                </View>
+                <AppText variant="caption" color={colors.mutedSoft}>
+                  {cardStatus(c)}
+                </AppText>
+              </View>
+              <Pressable onPress={() => toggleStar(id, c.id)} hitSlop={10}>
+                <AppText variant="titleSm" color={c.starred ? colors.warning : colors.mutedSoft}>
+                  {c.starred ? '★' : '☆'}
+                </AppText>
+              </Pressable>
             </Pressable>
           ))}
           <AppText variant="caption" color={colors.mutedSoft}>
-            Long-press a card to delete.
+            Tap ★ to flag a hard card · long-press to delete.
           </AppText>
         </>
       ) : null}
