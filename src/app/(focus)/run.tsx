@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { useKeepAwake } from 'expo-keep-awake';
 import {
   AudioModule,
   RecordingPresets,
@@ -33,6 +34,10 @@ export default function RunScreen() {
   const plannedMs = (Number(params.duration) || 30) * 60000;
   const flow = params.flow === '1';
   const topicId = params.topicId ?? null;
+
+  // Keep the screen on for the whole session — otherwise Android sleeps, JS
+  // pauses, and the end-of-focus chime fires late (on wake) instead of on time.
+  useKeepAwake();
 
   const [phase, setPhase] = useState<Phase>('study');
   const [now, setNow] = useState(Date.now());
