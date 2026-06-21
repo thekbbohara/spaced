@@ -83,4 +83,4 @@ No data collected, ever. See [`PRIVACY.md`](PRIVACY.md).
 
 ## License
 
-[MIT](LICENSE) © 2026 Kyalin Khanal
+[MIT](LICENSE) © 2026 Kb Bohara
