@@ -3,8 +3,14 @@ import { TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, radius, spacing, type } from '@/lib/design';
 import { AppText, Button, Screen } from './cal';
+import { GroupField } from './group-field';
 
-export type TopicFormValues = { title: string; notes: string; answer: string };
+export type TopicFormValues = {
+  title: string;
+  notes: string;
+  answer: string;
+  groupId: string | null;
+};
 
 const inputStyle = {
   ...type.bodyMd,
@@ -50,12 +56,13 @@ export function TopicForm({
   const [title, setTitle] = useState(initial?.title ?? '');
   const [notes, setNotes] = useState(initial?.notes ?? '');
   const [answer, setAnswer] = useState(initial?.answer ?? '');
+  const [groupId, setGroupId] = useState<string | null>(initial?.groupId ?? null);
 
   const canSave = title.trim().length > 0;
 
   async function submit() {
     if (!canSave) return;
-    await onSubmit({ title, notes, answer });
+    await onSubmit({ title, notes, answer, groupId });
     router.back();
   }
 
@@ -99,6 +106,8 @@ export function TopicForm({
           style={[inputStyle, { height: 110, paddingTop: spacing.sm }]}
         />
       </Field>
+
+      <GroupField value={groupId} onChange={setGroupId} />
 
       <Button title={submitLabel} onPress={submit} disabled={!canSave} />
       <Button title="Cancel" variant="secondary" onPress={() => router.back()} />

@@ -13,6 +13,7 @@ export default function FocusLayout() {
     >
       <Stack.Screen name="index" options={{ title: 'Focus' }} />
       <Stack.Screen name="run" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
+      <Stack.Screen name="session/[id]" options={{ title: 'Recall log' }} />
     </Stack>
   );
 }

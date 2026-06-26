@@ -79,3 +79,7 @@ export function totalFocusMs(sessions: FocusSession[]): number {
 export function useSessions(): FocusSession[] {
   return useSyncExternalStore((cb) => storage.subscribe(KEY, cb), read, read);
 }
+
+export function useSession(id: string): FocusSession | undefined {
+  return useSessions().find((s) => s.id === id);
+}

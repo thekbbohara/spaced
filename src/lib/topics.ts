@@ -7,7 +7,7 @@ import {
   INTERVALS,
   startOfDay,
 } from './schedule';
-import { cancel, ensurePermission, scheduleForTopic } from './notifications';
+import { ensurePermission, syncReviewReminders } from './notifications';
 import { deleteFile } from './files';
 
 function resourceId(): string {
@@ -76,6 +76,7 @@ export type Topic = {
   mastered: boolean;
   history: Review[];
   notificationId: string | null;
+  groupId?: string | null; // folder-tree node it lives under; null/undefined = ungrouped
 };
 
 const KEY = 'topics';
@@ -114,26 +115,29 @@ function nextAfter(stage: number, from: Date): string {
   return startOfDay(addDays(from, intervalForStage(stage))).toISOString();
 }
 
-async function syncReminder(topic: Topic) {
-  await cancel(topic.notificationId);
-  let notificationId: string | null = null;
+// How many cards/topics are reviewable right now — drives the reminder count.
+export function dueTodayCount(on: Date = new Date()): number {
+  return read().reduce((sum, t) => {
+    if ((t.cards?.length ?? 0) > 0) return sum + availableCards(t, on).length;
+    return sum + (isDue(t, on) ? 1 : 0);
+  }, 0);
+}
+
+// Reschedule the whole aggregate reminder batch from the current due state.
+export async function syncReminders() {
   const settings = getSettings();
-  if (settings.remindersEnabled) {
-    notificationId = await scheduleForTopic(
-      topic.id,
-      topic.title,
-      topic.nextReviewAt,
-      settings.reminderHour
-    );
-  }
-  // Persist the new notification id without disturbing other edits.
-  write(read().map((t) => (t.id === topic.id ? { ...t, notificationId } : t)));
+  await syncReviewReminders({
+    enabled: settings.remindersEnabled,
+    hour: settings.reminderHour,
+    dueCount: dueTodayCount(),
+  });
 }
 
 export async function addTopic(
   title: string,
   notes: string,
-  answer = ''
+  answer = '',
+  groupId: string | null = null
 ): Promise<Topic> {
   const now = new Date();
   const topic: Topic = {
@@ -148,15 +152,16 @@ export async function addTopic(
     mastered: false,
     history: [],
     notificationId: null,
+    groupId,
   };
   write([topic, ...read()]);
-  await syncReminder(topic);
+  await syncReminders();
   return topic;
 }
 
 export async function editTopic(
   id: string,
-  fields: { title: string; notes: string; answer: string }
+  fields: { title: string; notes: string; answer: string; groupId?: string | null }
 ) {
   let updated: Topic | undefined;
   write(
@@ -167,11 +172,22 @@ export async function editTopic(
         title: fields.title.trim(),
         notes: fields.notes.trim(),
         answer: fields.answer.trim(),
+        groupId: fields.groupId !== undefined ? fields.groupId : t.groupId ?? null,
       };
       return updated;
     })
   );
-  if (updated) await syncReminder(updated); // title changed → reminder text
+  if (updated) await syncReminders();
+}
+
+// Move a topic to a folder node (or null to ungroup).
+export function setTopicGroup(id: string, groupId: string | null) {
+  mutateTopic(id, (t) => ({ ...t, groupId }));
+}
+
+// Re-attach every topic in one group to another (used when deleting a folder).
+export function reassignGroupTopics(fromGroupId: string, toGroupId: string | null) {
+  write(read().map((t) => (t.groupId === fromGroupId ? { ...t, groupId: toGroupId } : t)));
 }
 
 function mutateTopic(id: string, fn: (t: Topic) => Topic) {
@@ -385,7 +401,7 @@ export async function reviewTopic(id: string, remembered: boolean) {
   });
   write(topics);
   if (before) setUndo(before);
-  if (updated) await syncReminder(updated);
+  if (updated) await syncReminders();
 }
 
 export async function undoReview() {
@@ -393,7 +409,7 @@ export async function undoReview() {
   const snapshot = pendingUndo;
   setUndo(null);
   write(read().map((t) => (t.id === snapshot.id ? snapshot : t)));
-  await syncReminder(snapshot);
+  await syncReminders();
 }
 
 export function clearUndo() {
@@ -413,23 +429,23 @@ export function useUndo(): Topic | null {
 
 export async function deleteTopic(id: string) {
   const topic = read().find((t) => t.id === id);
-  await cancel(topic?.notificationId ?? null);
   topic?.resources?.forEach((r) => {
     if (r.type === 'file') deleteFile(r.uri);
   });
   clearUndo();
   write(read().filter((t) => t.id !== id));
+  await syncReminders();
 }
 
 export async function setRemindersEnabled(enabled: boolean) {
   if (enabled) await ensurePermission();
   storage.set<Settings>(SETTINGS_KEY, { ...getSettings(), remindersEnabled: enabled });
-  for (const topic of read()) await syncReminder(topic);
+  await syncReminders();
 }
 
 export async function setReminderHour(hour: number) {
   storage.set<Settings>(SETTINGS_KEY, { ...getSettings(), reminderHour: hour });
-  for (const topic of read()) await syncReminder(topic);
+  await syncReminders();
 }
 
 export function isDue(topic: Topic, on: Date = new Date()): boolean {

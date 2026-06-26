@@ -141,26 +141,42 @@ export default function FocusScreen() {
             Recent sessions
           </AppText>
           {sessions.slice(0, 12).map((s) => (
-            <Card key={s.id} style={{ gap: spacing.xxs }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <AppText variant="titleSm" numberOfLines={1} style={{ flex: 1 }}>
-                  {s.label}
+            <Pressable
+              key={s.id}
+              onPress={() => router.push(`/session/${s.id}`)}
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <Card style={{ gap: spacing.xxs }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <AppText variant="titleSm" numberOfLines={1} style={{ flex: 1 }}>
+                    {s.label}
+                  </AppText>
+                  <AppText variant="caption" color={colors.muted}>
+                    {formatDate(s.completedAt)}
+                  </AppText>
+                </View>
+                <AppText variant="bodySm" color={colors.muted}>
+                  {s.studyMs > 0 ? `${formatMinutes(s.studyMs)} focus · ` : ''}
+                  {formatMinutes(s.recallMs)} recall
+                  {s.recallMode ? ` · ${s.recallMode === 'voice' ? '🎙 voice' : '✍️ written'}` : ''}
                 </AppText>
-                <AppText variant="caption" color={colors.muted}>
-                  {formatDate(s.completedAt)}
-                </AppText>
-              </View>
-              <AppText variant="bodySm" color={colors.muted}>
-                {formatMinutes(s.studyMs)} focus · {formatMinutes(s.recallMs)} recall
-                {s.recallMode ? ` · ${s.recallMode === 'voice' ? '🎙 voice' : '✍️ written'}` : ''}
-              </AppText>
-            </Card>
+                {s.recallText ? (
+                  <AppText variant="bodySm" color={colors.body} numberOfLines={2}>
+                    {s.recallText}
+                  </AppText>
+                ) : s.recallMode === 'voice' ? (
+                  <AppText variant="bodySm" color={colors.mutedSoft}>
+                    Tap to play your recording
+                  </AppText>
+                ) : null}
+              </Card>
+            </Pressable>
           ))}
         </>
       )}

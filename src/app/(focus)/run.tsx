@@ -16,9 +16,14 @@ import { colors, radius, spacing, type } from '@/lib/design';
 import { formatClock } from '@/lib/schedule';
 import { cancel, scheduleFocusEnd } from '@/lib/notifications';
 import { recallTargetMs, saveSession, type RecallMode } from '@/lib/sessions';
+import { reviewTopic } from '@/lib/topics';
 import { AppText, Button } from '@/components/cal';
 
 type Phase = 'study' | 'pick' | 'recall';
+
+// Recall-only sessions (launched from a topic's "Recalled it") skip the focus
+// timer and run a flat 5-minute, skippable recall.
+const RECALL_ONLY_MS = 5 * 60000;
 
 export default function RunScreen() {
   const router = useRouter();
@@ -28,14 +33,16 @@ export default function RunScreen() {
     duration: string;
     flow: string;
     topicId?: string;
+    recallOnly?: string;
   }>();
 
   const label = params.label ?? 'Study session';
   const plannedMs = (Number(params.duration) || 30) * 60000;
   const flow = params.flow === '1';
   const topicId = params.topicId ?? null;
+  const recallOnly = params.recallOnly === '1';
 
-  const [phase, setPhase] = useState<Phase>('study');
+  const [phase, setPhase] = useState<Phase>(recallOnly ? 'pick' : 'study');
   const [now, setNow] = useState(Date.now());
   const studyStart = useRef(Date.now());
   const recallStart = useRef<number | null>(null);
@@ -61,6 +68,7 @@ export default function RunScreen() {
   // Schedule an OS notification for the goal time so the cue fires even if the
   // screen sleeps and JS pauses — no need to keep the screen on (saves battery).
   useEffect(() => {
+    if (recallOnly) return; // no focus timer in a recall-only session
     let stale = false;
     scheduleFocusEnd(label, plannedMs).then((id) => {
       if (stale) cancel(id);
@@ -155,6 +163,7 @@ export default function RunScreen() {
       recallAudioUri: audioUri,
       flowMode: flow,
     });
+    if (recallOnly && topicId) await reviewTopic(topicId, true);
     router.back();
   }
 
@@ -165,7 +174,7 @@ export default function RunScreen() {
     ]);
   }
 
-  const recallTarget = recallTargetMs(studyMs);
+  const recallTarget = recallOnly ? RECALL_ONLY_MS : recallTargetMs(studyMs);
   const recallElapsed = recallStart.current ? now - recallStart.current : 0;
 
   // ---- STUDY PHASE ----
@@ -227,8 +236,9 @@ export default function RunScreen() {
       >
         <AppText variant="displaySm">Now recall it</AppText>
         <AppText variant="bodyMd" color={colors.body}>
-          You focused for {formatClock(studyMs)}. Spend about {formatClock(recallTarget)} pulling
-          what you learned out of memory — no notes.
+          {recallOnly
+            ? `Pull everything you remember about “${label}” out of memory — no notes. Aim for about ${formatClock(recallTarget)}, but finish whenever you're done.`
+            : `You focused for ${formatClock(studyMs)}. Spend about ${formatClock(recallTarget)} pulling what you learned out of memory — no notes.`}
         </AppText>
         <View style={{ flex: 1 }} />
         <Button title="✍️  Write your recall" onPress={() => chooseMode('write')} />
@@ -323,7 +333,7 @@ export default function RunScreen() {
       )}
 
       <Button
-        title={saving ? 'Saving…' : 'Save & schedule review'}
+        title={saving ? 'Saving…' : recallOnly ? 'Save & mark recalled' : 'Save & schedule review'}
         onPress={finish}
         disabled={saving || (mode === 'write' ? text.trim().length === 0 : !audioUri)}
       />

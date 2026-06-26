@@ -3,7 +3,7 @@ import * as Sharing from 'expo-sharing';
 import { File, Paths } from 'expo-file-system';
 import { storage } from './storage';
 
-const KEYS = ['topics', 'settings', 'sessions'] as const;
+const KEYS = ['topics', 'settings', 'sessions', 'groups'] as const;
 const FORMAT = 'active-recall-backup';
 
 type Backup = {

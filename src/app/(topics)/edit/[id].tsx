@@ -19,7 +19,12 @@ export default function EditScreen() {
     <>
       <Stack.Screen options={{ title: 'Edit topic' }} />
       <TopicForm
-        initial={{ title: topic.title, notes: topic.notes, answer: topic.answer }}
+        initial={{
+          title: topic.title,
+          notes: topic.notes,
+          answer: topic.answer,
+          groupId: topic.groupId ?? null,
+        }}
         submitLabel="Save changes"
         onSubmit={(values) => editTopic(topic.id, values)}
       />

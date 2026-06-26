@@ -5,8 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius, spacing, type } from '@/lib/design';
 import {
   availableCards,
-  dueCards,
   gradeCard,
+  syncReminders,
   toggleStar,
   useTopic,
   type Card,
@@ -101,6 +101,11 @@ export default function StudyScreen() {
   const currentId = queue[0];
   const card = currentId ? deck.get(currentId) : undefined;
 
+  // Grading mutates due state; refresh the reminder batch when leaving the deck.
+  useEffect(() => () => {
+    syncReminders();
+  }, []);
+
   const anim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(anim, {
@@ -119,6 +124,8 @@ export default function StudyScreen() {
   }
 
   function nextCard(requeue: boolean) {
+    anim.stopAnimation();
+    anim.setValue(0); // snap to prompt so next card's answer never flashes
     setFlipped(false);
     setTyped('');
     setChecked(false);

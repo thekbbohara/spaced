@@ -4,7 +4,7 @@ import { Tabs } from 'expo-router';
 import { colors, spacing } from '@/lib/design';
 import { ensurePermission } from '@/lib/notifications';
 import { storage } from '@/lib/storage';
-import type { Settings } from '@/lib/topics';
+import { syncReminders, type Settings } from '@/lib/topics';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
@@ -18,7 +18,9 @@ const TABS: { name: string; title: string; icon: IoniconName }[] = [
 export default function RootLayout() {
   useEffect(() => {
     const settings = storage.get<Partial<Settings> | null>('settings', {});
-    if (settings?.remindersEnabled !== false) ensurePermission();
+    if (settings?.remindersEnabled !== false) {
+      ensurePermission().then(() => syncReminders()); // re-arm reminders on open
+    }
   }, []);
 
   return (

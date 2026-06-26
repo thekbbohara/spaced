@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { DEFAULT_REMINDER_HOUR } from './schedule';
+import { storage } from './storage';
 
 // expo-notifications was removed from Expo Go on Android (SDK 53+). Importing it
 // there throws, so we only load it in dev/standalone builds and no-op in Expo Go.
@@ -33,7 +33,7 @@ async function ensureAndroidChannel(N: NotificationsModule) {
   if (Platform.OS !== 'android' || channelReady) return;
   await N.setNotificationChannelAsync('reviews', {
     name: 'Review reminders',
-    importance: N.AndroidImportance.DEFAULT,
+    importance: N.AndroidImportance.HIGH, // heads-up banner + sound, like Duolingo
   });
   channelReady = true;
 }
@@ -61,35 +61,81 @@ export async function ensurePermission(): Promise<boolean> {
   }
 }
 
-// Schedules a reminder for a topic's next review at REMINDER_HOUR local time.
-// Returns the notification id, or null if it could not be scheduled.
-export async function scheduleForTopic(
-  id: string,
-  title: string,
-  nextReviewAt: string | null,
-  hour: number = DEFAULT_REMINDER_HOUR
-): Promise<string | null> {
+// --- Aggregate review reminders ---------------------------------------------
+// Offline-only (no server push). We re-nag through the day with local
+// notifications and stop once everything's reviewed. Re-synced on every review,
+// app open, and settings change.
+
+const BATCH_KEY = 'reviewNotifIds'; // ids we manage, so we can cancel/replace them
+const ESCALATE_EVERY_H = 2.5; // re-nudge cadence while reviews remain
+const LAST_SLOT_H = 21.5; // no nudges after ~9:30pm
+
+// Future times today at hour, hour+2.5, … up to LAST_SLOT_H.
+function todaySlots(hour: number): Date[] {
+  const slots: Date[] = [];
+  const now = Date.now();
+  for (let h = hour; h <= LAST_SLOT_H + 1e-6; h += ESCALATE_EVERY_H) {
+    const whole = Math.floor(h);
+    const d = new Date();
+    d.setHours(whole, Math.round((h - whole) * 60), 0, 0);
+    if (d.getTime() > now + 1000) slots.push(d);
+  }
+  return slots;
+}
+
+// Cancels the previous batch and reschedules based on the live due count.
+// `dueCount` is how many cards/topics are reviewable right now.
+export async function syncReviewReminders(opts: {
+  enabled: boolean;
+  hour: number;
+  dueCount: number;
+}): Promise<void> {
   const N = getModule();
-  if (!N || !nextReviewAt) return null;
+  if (!N) return;
   try {
-    const date = new Date(nextReviewAt);
-    date.setHours(hour, 0, 0, 0);
-    if (date.getTime() <= Date.now()) return null; // due now — shown in-app
+    for (const id of storage.get<string[]>(BATCH_KEY, [])) await cancel(id);
+    storage.set<string[]>(BATCH_KEY, []);
+    if (!opts.enabled) return;
     await ensureAndroidChannel(N);
-    return await N.scheduleNotificationAsync({
-      content: {
-        title: 'Time to recall',
-        body: `Review "${title}" while you can still pull it from memory.`,
-        data: { topicId: id },
-      },
-      trigger: {
-        type: N.SchedulableTriggerInputTypes.DATE,
-        date,
-        channelId: 'reviews',
-      },
-    });
+
+    const ids: string[] = [];
+
+    // Daily digest — a standing repeating reminder so missed days still surface,
+    // even if the app is never reopened.
+    ids.push(
+      await N.scheduleNotificationAsync({
+        content: {
+          title: 'Time to recall 📚',
+          body: 'Open Spaced and clear today’s reviews — a few minutes keeps it in memory.',
+          sound: true,
+        },
+        trigger: {
+          type: N.SchedulableTriggerInputTypes.DAILY,
+          hour: Math.floor(opts.hour),
+          minute: 0,
+          channelId: 'reviews',
+        },
+      })
+    );
+
+    // Same-day escalation — nudge every 2.5h while reviews remain. Re-sync after
+    // a review recomputes dueCount; when it hits 0, no escalation is scheduled.
+    if (opts.dueCount > 0) {
+      const n = opts.dueCount;
+      const body = `You have ${n} card${n === 1 ? '' : 's'} due. 2 minutes keeps your streak.`;
+      for (const date of todaySlots(opts.hour)) {
+        ids.push(
+          await N.scheduleNotificationAsync({
+            content: { title: 'Reviews waiting', body, sound: true },
+            trigger: { type: N.SchedulableTriggerInputTypes.DATE, date, channelId: 'reviews' },
+          })
+        );
+      }
+    }
+
+    storage.set<string[]>(BATCH_KEY, ids);
   } catch {
-    return null;
+    // ignore — reminders are best-effort
   }
 }
 
