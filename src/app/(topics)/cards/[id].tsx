@@ -5,6 +5,7 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { colors, radius, spacing, type } from '@/lib/design';
 import { INTERVALS, formatRelativeDay } from '@/lib/schedule';
 import { pickImage } from '@/lib/files';
+import { exportDeckCsv, importDeckFile } from '@/lib/deck-io';
 import {
   addCard,
   addCards,
@@ -111,6 +112,31 @@ export default function CardsScreen() {
     else setBackImage(picked.uri);
   }
 
+  async function onImportFile() {
+    try {
+      const res = await importDeckFile();
+      if (res.cancelled) return;
+      if (res.pairs.length === 0) {
+        Alert.alert('Nothing imported', 'No front/back rows were found in that file.');
+        return;
+      }
+      addCards(id, res.pairs);
+      Alert.alert('Imported', `${res.pairs.length} cards added.`);
+    } catch (e) {
+      Alert.alert('Import failed', e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  async function onExportDeck() {
+    if (!topic) return;
+    try {
+      const ok = await exportDeckCsv(topic.title, cards.map((c) => ({ front: c.front, back: c.back })));
+      if (!ok) Alert.alert('Sharing unavailable', 'Cannot open the share sheet on this device.');
+    } catch (e) {
+      Alert.alert('Export failed', e instanceof Error ? e.message : String(e));
+    }
+  }
+
   function addBulk() {
     if (parsed.length === 0) return;
     addCards(id, parsed);
@@ -191,6 +217,20 @@ export default function CardsScreen() {
           title={parsed.length > 0 ? `Add ${parsed.length} cards` : 'Add cards'}
           onPress={addBulk}
           disabled={parsed.length === 0}
+        />
+      </Card>
+
+      <Card tone="canvas">
+        <AppText variant="titleSm">Import / export</AppText>
+        <AppText variant="bodySm" color={colors.muted}>
+          Import a CSV or Anki text (TSV) file — first two columns become front and back.
+        </AppText>
+        <Button title="Import from file" variant="secondary" onPress={onImportFile} />
+        <Button
+          title="Export deck to CSV"
+          variant="secondary"
+          onPress={onExportDeck}
+          disabled={cards.length === 0}
         />
       </Card>
 
