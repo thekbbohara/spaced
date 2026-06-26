@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, TextInput, View } from 'react-native';
+import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { colors, radius, spacing, type } from '@/lib/design';
 import { INTERVALS, formatRelativeDay } from '@/lib/schedule';
+import { pickImage } from '@/lib/files';
 import {
   addCard,
   addCards,
@@ -14,6 +16,42 @@ import {
   type Card as CardType,
 } from '@/lib/topics';
 import { AppText, Button, Card, Screen } from '@/components/cal';
+
+function ImagePickRow({
+  label,
+  uri,
+  onPick,
+  onClear,
+}: {
+  label: string;
+  uri: string | null;
+  onPick: () => void;
+  onClear: () => void;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+      {uri ? (
+        <Image
+          source={{ uri }}
+          style={{ width: 44, height: 44, borderRadius: radius.sm }}
+          contentFit="cover"
+        />
+      ) : null}
+      <Pressable onPress={onPick} hitSlop={6}>
+        <AppText variant="caption" color={colors.primary}>
+          {uri ? `Change ${label} image` : `+ ${label} image`}
+        </AppText>
+      </Pressable>
+      {uri ? (
+        <Pressable onPress={onClear} hitSlop={6}>
+          <AppText variant="caption" color={colors.muted}>
+            Remove
+          </AppText>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
 
 function cardStatus(c: CardType): string {
   if (c.mastered) return 'Mastered';
@@ -39,6 +77,8 @@ export default function CardsScreen() {
 
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
+  const [frontImage, setFrontImage] = useState<string | null>(null);
+  const [backImage, setBackImage] = useState<string | null>(null);
   const [bulk, setBulk] = useState('');
   const [sep, setSep] = useState<string>(CARD_SEPARATORS[0].value);
 
@@ -53,11 +93,22 @@ export default function CardsScreen() {
   }
   const cards = topic.cards ?? [];
 
+  const canAddSingle = (front.trim() || frontImage) && (back.trim() || backImage);
+
   function addSingle() {
-    if (!front.trim() || !back.trim()) return;
-    addCard(id, front, back);
+    if (!canAddSingle) return;
+    addCard(id, front, back, frontImage, backImage);
     setFront('');
     setBack('');
+    setFrontImage(null);
+    setBackImage(null);
+  }
+
+  async function pickFor(side: 'front' | 'back') {
+    const picked = await pickImage();
+    if (!picked) return;
+    if (side === 'front') setFrontImage(picked.uri);
+    else setBackImage(picked.uri);
   }
 
   function addBulk() {
@@ -79,6 +130,12 @@ export default function CardsScreen() {
           placeholderTextColor={colors.mutedSoft}
           style={inputStyle}
         />
+        <ImagePickRow
+          label="front"
+          uri={frontImage}
+          onPick={() => pickFor('front')}
+          onClear={() => setFrontImage(null)}
+        />
         <TextInput
           value={back}
           onChangeText={setBack}
@@ -86,7 +143,13 @@ export default function CardsScreen() {
           placeholderTextColor={colors.mutedSoft}
           style={inputStyle}
         />
-        <Button title="Add card" onPress={addSingle} disabled={!front.trim() || !back.trim()} />
+        <ImagePickRow
+          label="back"
+          uri={backImage}
+          onPick={() => pickFor('back')}
+          onClear={() => setBackImage(null)}
+        />
+        <Button title="Add card" onPress={addSingle} disabled={!canAddSingle} />
       </Card>
 
       <Card tone="canvas">
@@ -155,10 +218,17 @@ export default function CardsScreen() {
                 gap: spacing.sm,
               })}
             >
+              {c.frontImage || c.backImage ? (
+                <Image
+                  source={{ uri: (c.frontImage || c.backImage) as string }}
+                  style={{ width: 36, height: 36, borderRadius: radius.sm }}
+                  contentFit="cover"
+                />
+              ) : null}
               <View style={{ flex: 1, gap: 2 }}>
                 <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                   <AppText variant="titleSm" style={{ flex: 1 }} numberOfLines={1}>
-                    {c.front}
+                    {c.front || (c.frontImage ? '🖼 image' : '')}
                   </AppText>
                   <AppText
                     variant="bodySm"
@@ -166,7 +236,7 @@ export default function CardsScreen() {
                     style={{ flex: 1 }}
                     numberOfLines={1}
                   >
-                    {c.back}
+                    {c.back || (c.backImage ? '🖼 image' : '')}
                   </AppText>
                 </View>
                 <AppText variant="caption" color={colors.mutedSoft}>

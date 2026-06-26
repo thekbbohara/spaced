@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius, spacing, type } from '@/lib/design';
@@ -140,6 +141,8 @@ export default function StudyScreen() {
   const backText = override?.back ?? card?.back ?? '';
   const prompt = rev ? backText : frontText;
   const answer = rev ? frontText : backText;
+  const promptImg = (rev ? card?.backImage : card?.frontImage) ?? null;
+  const answerImg = (rev ? card?.frontImage : card?.backImage) ?? null;
   const isStarred = currentId ? stars.has(currentId) : false;
 
   function flip() {
@@ -415,8 +418,8 @@ export default function StudyScreen() {
             style={{ flex: 1 }}
           >
           {[
-            { face: frontFace, text: prompt, label: 'PROMPT', filled: false },
-            { face: backFace, text: answer, label: 'ANSWER', filled: true },
+            { face: frontFace, text: prompt, img: promptImg, label: 'PROMPT', filled: false },
+            { face: backFace, text: answer, img: answerImg, label: 'ANSWER', filled: true },
           ].map((f) => (
             <Animated.View
               key={f.label}
@@ -449,9 +452,23 @@ export default function StudyScreen() {
                 >
                   {f.label}
                 </AppText>
-                <AppText style={{ ...type.displaySm, textAlign: 'center' }} selectable>
-                  {f.text}
-                </AppText>
+                {f.img ? (
+                  <Image
+                    source={{ uri: f.img }}
+                    style={{
+                      width: '100%',
+                      height: 200,
+                      borderRadius: radius.md,
+                      marginBottom: f.text ? spacing.md : 0,
+                    }}
+                    contentFit="contain"
+                  />
+                ) : null}
+                {f.text ? (
+                  <AppText style={{ ...type.displaySm, textAlign: 'center' }} selectable>
+                    {f.text}
+                  </AppText>
+                ) : null}
                 {!f.filled && !typing ? (
                   <AppText
                     variant="caption"

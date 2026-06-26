@@ -35,6 +35,8 @@ export type Card = {
   starred?: boolean;
   introducedAt?: string | null; // first time the card was graded; gates new-per-hour
   lapses?: number; // total times forgotten; a "leech" auto-stars at LEECH_LAPSES
+  frontImage?: string | null; // durable image uri shown with the front
+  backImage?: string | null; // durable image uri shown with the back
 };
 
 // A card forgotten this many times auto-stars as a hard card ("leech").
@@ -247,11 +249,18 @@ export function removeResource(topicId: string, resourceId: string) {
 
 // --- Flashcard deck (per-card spaced repetition) ---
 
-function makeCard(front: string, back: string): Card {
+function makeCard(
+  front: string,
+  back: string,
+  frontImage: string | null = null,
+  backImage: string | null = null
+): Card {
   return {
     id: cardId(),
     front: front.trim(),
     back: back.trim(),
+    frontImage,
+    backImage,
     stage: 0,
     lastReviewedAt: null,
     nextReviewAt: startOfDay(new Date()).toISOString(), // new cards are due now
@@ -262,8 +271,17 @@ function makeCard(front: string, back: string): Card {
   };
 }
 
-export function addCard(topicId: string, front: string, back: string) {
-  mutateTopic(topicId, (t) => ({ ...t, cards: [...(t.cards ?? []), makeCard(front, back)] }));
+export function addCard(
+  topicId: string,
+  front: string,
+  back: string,
+  frontImage: string | null = null,
+  backImage: string | null = null
+) {
+  mutateTopic(topicId, (t) => ({
+    ...t,
+    cards: [...(t.cards ?? []), makeCard(front, back, frontImage, backImage)],
+  }));
 }
 
 export function addCards(topicId: string, pairs: { front: string; back: string }[]) {
@@ -287,6 +305,11 @@ export function updateCard(
 }
 
 export function deleteCard(topicId: string, cardIdValue: string) {
+  const target = read()
+    .find((t) => t.id === topicId)
+    ?.cards?.find((c) => c.id === cardIdValue);
+  if (target?.frontImage) deleteFile(target.frontImage);
+  if (target?.backImage) deleteFile(target.backImage);
   mutateTopic(topicId, (t) => ({
     ...t,
     cards: (t.cards ?? []).filter((c) => c.id !== cardIdValue),
