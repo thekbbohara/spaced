@@ -12,6 +12,7 @@ export default function TopicsLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ title: 'Topics' }} />
+      <Stack.Screen name="search" options={{ title: 'Search', headerLargeTitle: false }} />
       <Stack.Screen name="topic/[id]" options={{ title: '', headerLargeTitle: false }} />
       <Stack.Screen
         name="edit/[id]"

@@ -163,6 +163,23 @@ export default function TopicsScreen() {
 
   return (
     <Screen>
+      <Pressable
+        onPress={() => router.push('/search')}
+        style={{
+          backgroundColor: colors.surfaceCard,
+          borderWidth: 1,
+          borderColor: colors.hairline,
+          borderRadius: radius.md,
+          borderCurve: 'continuous',
+          paddingHorizontal: spacing.md,
+          paddingVertical: spacing.sm,
+        }}
+      >
+        <AppText variant="bodyMd" color={colors.mutedSoft}>
+          🔍  Search topics and cards
+        </AppText>
+      </Pressable>
+
       {roots.length > 0 ? (
         <AppText variant="caption" color={colors.mutedSoft}>
           Long-press a folder to rename or delete it.
