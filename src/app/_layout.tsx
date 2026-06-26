@@ -5,6 +5,7 @@ import { colors, spacing } from '@/lib/design';
 import { ensurePermission } from '@/lib/notifications';
 import { storage } from '@/lib/storage';
 import { syncReminders, type Settings } from '@/lib/topics';
+import { logEvent } from '@/lib/events';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
@@ -17,6 +18,7 @@ const TABS: { name: string; title: string; icon: IoniconName }[] = [
 
 export default function RootLayout() {
   useEffect(() => {
+    logEvent('app_open');
     const settings = storage.get<Partial<Settings> | null>('settings', {});
     if (settings?.remindersEnabled !== false) {
       ensurePermission().then(() => syncReminders()); // re-arm reminders on open

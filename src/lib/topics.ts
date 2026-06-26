@@ -9,6 +9,7 @@ import {
 } from './schedule';
 import { ensurePermission, syncReviewReminders } from './notifications';
 import { updateDueWidget } from './widget';
+import { logEvent } from './events';
 import { deleteFile } from './files';
 
 function resourceId(): string {
@@ -173,6 +174,7 @@ export async function addTopic(
     groupId,
   };
   write([topic, ...read()]);
+  logEvent('topic_created', { label: topic.title });
   await syncReminders();
   return topic;
 }
@@ -325,20 +327,26 @@ export function toggleStar(topicId: string, cardIdValue: string) {
   }));
 }
 
-export function gradeCard(topicId: string, cardIdValue: string, good: boolean) {
+export type GradeResult = 'good' | 'hard' | 'again';
+
+export function gradeCard(topicId: string, cardIdValue: string, result: GradeResult) {
   const now = new Date();
+  let label = '';
   mutateTopic(topicId, (t) => ({
     ...t,
     cards: (t.cards ?? []).map((c) => {
       if (c.id !== cardIdValue) return c;
-      const stage = good ? c.stage + 1 : 0;
-      const mastered = good && stage >= INTERVALS.length;
-      const nextReviewAt = good
-        ? mastered
-          ? null
-          : startOfDay(addDays(now, intervalForStage(stage))).toISOString()
-        : startOfDay(now).toISOString(); // "Again" → still due today
-      const lapses = (c.lapses ?? 0) + (good ? 0 : 1);
+      label = c.front;
+      // good advances a stage; hard holds the stage (half recall); again resets.
+      const stage = result === 'good' ? c.stage + 1 : result === 'hard' ? c.stage : 0;
+      const mastered = result === 'good' && stage >= INTERVALS.length;
+      const nextReviewAt =
+        result === 'again'
+          ? startOfDay(now).toISOString() // still due today
+          : mastered
+            ? null
+            : startOfDay(addDays(now, intervalForStage(stage))).toISOString();
+      const lapses = (c.lapses ?? 0) + (result === 'again' ? 1 : 0);
       return {
         ...c,
         stage,
@@ -351,6 +359,10 @@ export function gradeCard(topicId: string, cardIdValue: string, good: boolean) {
       };
     }),
   }));
+  logEvent('card_reviewed', {
+    label,
+    outcome: result === 'good' ? 'recalled' : result === 'hard' ? 'half' : 'forgot',
+  });
 }
 
 // Overwrite a card with an earlier snapshot — used to undo a grade in the deck.
@@ -460,7 +472,13 @@ export async function reviewTopic(id: string, remembered: boolean) {
   });
   write(topics);
   if (before) setUndo(before);
-  if (updated) await syncReminders();
+  if (updated) {
+    logEvent('topic_reviewed', {
+      label: updated.title,
+      outcome: remembered ? 'recalled' : 'forgot',
+    });
+    await syncReminders();
+  }
 }
 
 export async function undoReview() {

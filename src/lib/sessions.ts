@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { storage } from './storage';
 import { addTopic } from './topics';
+import { logEvent } from './events';
 
 export type RecallMode = 'write' | 'voice';
 
@@ -69,6 +70,7 @@ export async function saveSession(input: NewSession): Promise<FocusSession> {
     completedAt: now.toISOString(),
   };
   storage.set(KEY, [session, ...read()]);
+  logEvent('recall_session', { label: input.label });
   return session;
 }
 

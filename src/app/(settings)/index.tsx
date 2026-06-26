@@ -1,4 +1,5 @@
 import { Alert, Pressable, Switch, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { colors, radius, spacing } from '@/lib/design';
 import { formatHour, INTERVALS } from '@/lib/schedule';
 import { computeStats } from '@/lib/stats';
@@ -87,6 +88,7 @@ async function onTestReminder() {
 }
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const settings = useSettings();
   const topics = useTopics();
   const stats = computeStats(topics);
@@ -103,6 +105,12 @@ export default function SettingsScreen() {
           </View>
         </Card>
       )}
+
+      <Button
+        title="📋  Activity log"
+        variant="secondary"
+        onPress={() => router.push('/activity')}
+      />
 
       <Card tone="canvas">
         <View

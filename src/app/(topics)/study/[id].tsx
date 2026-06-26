@@ -13,7 +13,9 @@ import {
   updateCard,
   useTopics,
   type Card,
+  type GradeResult,
 } from '@/lib/topics';
+import { logEvent } from '@/lib/events';
 import { AppText, Button } from '@/components/cal';
 
 function shuffled(ids: string[]): string[] {
@@ -162,20 +164,23 @@ export default function StudyScreen() {
     }
   }
 
-  function grade(good: boolean) {
+  function grade(result: GradeResult) {
     if (!currentId) return;
     const tid = topicOf.get(currentId);
     if (!tid) return;
     const snapshot = topics.find((t) => t.id === tid)?.cards?.find((c) => c.id === currentId);
-    gradeCard(tid, currentId, good);
-    if (snapshot) setHistory((h) => [...h, { snapshot, requeued: !good }]);
-    if (good) {
-      setDone((d) => d + 1);
-      nextCard(false);
-    } else {
-      setAgain((a) => a + 1);
-      nextCard(true); // re-study this session
-    }
+    gradeCard(tid, currentId, result);
+    const requeue = result !== 'good'; // hard & again come back this session
+    if (snapshot) setHistory((h) => [...h, { snapshot, requeued: requeue }]);
+    if (result === 'good') setDone((d) => d + 1);
+    else setAgain((a) => a + 1);
+    nextCard(requeue);
+  }
+
+  function skip() {
+    if (!currentId) return;
+    logEvent('card_skipped', { label: frontText || backText });
+    nextCard(true); // not graded — comes back later this session
   }
 
   function undo() {
@@ -520,11 +525,15 @@ export default function StudyScreen() {
         </View>
       ) : flipped || checked ? (
         <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          <Button title="Again" variant="secondary" style={{ flex: 1 }} onPress={() => grade(false)} />
-          <Button title="Good" style={{ flex: 1 }} onPress={() => grade(true)} />
+          <Button title="Again" variant="secondary" style={{ flex: 1 }} onPress={() => grade('again')} />
+          <Button title="Hard" variant="secondary" style={{ flex: 1 }} onPress={() => grade('hard')} />
+          <Button title="Good" style={{ flex: 1 }} onPress={() => grade('good')} />
         </View>
       ) : (
-        <Button title="Show answer" onPress={() => setFlipped(true)} />
+        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <Button title="Skip" variant="secondary" style={{ flex: 1 }} onPress={skip} />
+          <Button title="Show answer" style={{ flex: 2 }} onPress={() => setFlipped(true)} />
+        </View>
       )}
     </View>
   );
