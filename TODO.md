@@ -2,6 +2,21 @@
 
 Loose backlog. Grab anything, open an issue, or send a PR. Nothing here is committed timeline.
 
+## Recently shipped
+
+- [x] Android home-screen widget (cards due today)
+- [x] Configurable new-cards-per-hour
+- [x] Cloze deletion cards
+- [x] Images on cards (creation + study view)
+- [x] Anki TSV / CSV import and CSV export
+- [x] Search across topics and cards
+- [x] Folder tree + per-folder stats + study a whole folder
+- [x] Mixed "Study all due"; Again/Hard/Good + Skip; undo; edit-mid-study; leech auto-flag
+- [x] Recall sessions + offline activity log
+- [x] Reminders: heads-up pop, daily digest, 2.5h escalation
+- [x] Topic "key points to study" field
+- [x] Accessibility pass
+
 ## Shipping
 
 - [ ] Publish to Google Play (production track)
