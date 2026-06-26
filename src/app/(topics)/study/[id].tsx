@@ -17,6 +17,7 @@ import {
 } from '@/lib/topics';
 import { descendantIds, useGroups } from '@/lib/groups';
 import { logEvent } from '@/lib/events';
+import { clozeAnswer, clozePrompt, isCloze } from '@/lib/cloze';
 import { AppText, Button } from '@/components/cal';
 
 function shuffled(ids: string[]): string[] {
@@ -148,8 +149,13 @@ export default function StudyScreen() {
   const override = currentId ? edits[currentId] : undefined;
   const frontText = override?.front ?? card?.front ?? '';
   const backText = override?.back ?? card?.back ?? '';
-  const prompt = rev ? backText : frontText;
-  const answer = rev ? frontText : backText;
+  const cloze = isCloze(frontText); // cloze cards ignore reverse; prompt/answer come from the front
+  const prompt = cloze ? clozePrompt(frontText) : rev ? backText : frontText;
+  const answer = cloze
+    ? clozeAnswer(frontText) + (backText ? `\n\n${backText}` : '')
+    : rev
+      ? frontText
+      : backText;
   const promptImg = (rev ? card?.backImage : card?.frontImage) ?? null;
   const answerImg = (rev ? card?.frontImage : card?.backImage) ?? null;
   const isStarred = currentId ? stars.has(currentId) : false;

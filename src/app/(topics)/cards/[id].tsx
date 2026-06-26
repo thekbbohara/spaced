@@ -6,6 +6,7 @@ import { colors, radius, spacing, type } from '@/lib/design';
 import { INTERVALS, formatRelativeDay } from '@/lib/schedule';
 import { pickImage } from '@/lib/files';
 import { exportDeckCsv, importDeckFile } from '@/lib/deck-io';
+import { isCloze } from '@/lib/cloze';
 import {
   addCard,
   addCards,
@@ -94,7 +95,8 @@ export default function CardsScreen() {
   }
   const cards = topic.cards ?? [];
 
-  const canAddSingle = (front.trim() || frontImage) && (back.trim() || backImage);
+  const canAddSingle =
+    (front.trim() || frontImage) && (back.trim() || backImage || isCloze(front));
 
   function addSingle() {
     if (!canAddSingle) return;
@@ -175,6 +177,10 @@ export default function CardsScreen() {
           onPick={() => pickFor('back')}
           onClear={() => setBackImage(null)}
         />
+        <AppText variant="caption" color={colors.mutedSoft}>
+          Tip: cloze deletion — put {'{{c1::hidden answer}}'} in the front and leave the back
+          empty to make a fill-in-the-blank card.
+        </AppText>
         <Button title="Add card" onPress={addSingle} disabled={!canAddSingle} />
       </Card>
 
