@@ -122,6 +122,36 @@ export default function TodayScreen() {
         due.map((topic) => <ReviewCard key={topic.id} topic={topic} />)
       )}
 
+      {decks.length > 1 ? (
+        <Pressable
+          onPress={() => router.push('/study/all?due=1&shuffle=1')}
+          style={({ pressed }) => ({
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: spacing.sm,
+            padding: spacing.lg,
+            borderRadius: radius.lg,
+            borderCurve: 'continuous',
+            borderWidth: 1,
+            borderColor: colors.primary,
+            backgroundColor: pressed ? colors.surfaceCard : colors.canvas,
+          })}
+        >
+          <View style={{ flex: 1, gap: 2 }}>
+            <AppText variant="titleSm" color={colors.primary}>
+              Study all due
+            </AppText>
+            <AppText variant="caption" color={colors.muted}>
+              {dueCardTotal} cards from {decks.length} decks, shuffled
+            </AppText>
+          </View>
+          <AppText variant="button" color={colors.primary}>
+            Start ›
+          </AppText>
+        </Pressable>
+      ) : null}
+
       {decks.map(({ topic, count }) => (
         <Pressable
           key={topic.id}

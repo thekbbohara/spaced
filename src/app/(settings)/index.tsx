@@ -5,6 +5,8 @@ import { computeStats } from '@/lib/stats';
 import { remindersAvailable, sendTestReminder } from '@/lib/notifications';
 import { exportBackup, importBackup } from '@/lib/backup';
 import {
+  NEW_PER_HOUR,
+  setNewPerHour,
   setReminderHour,
   setRemindersEnabled,
   useSettings,
@@ -167,6 +169,42 @@ export default function SettingsScreen() {
             style={{ marginTop: spacing.xxs }}
           />
         )}
+      </Card>
+
+      <AppText variant="titleMd" style={{ marginTop: spacing.xs }}>
+        Study
+      </AppText>
+      <Card tone="canvas">
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <View style={{ flex: 1, paddingRight: spacing.sm }}>
+            <AppText variant="titleSm">New cards per hour</AppText>
+            <AppText variant="bodySm" color={colors.muted}>
+              How many brand-new cards a deck introduces at once, so big decks don&apos;t overwhelm you.
+            </AppText>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            <StepperButton
+              label="−"
+              onPress={() => setNewPerHour(Math.max(1, (settings.newPerHour ?? NEW_PER_HOUR) - 1))}
+            />
+            <AppText
+              variant="titleMd"
+              style={{ width: 36, textAlign: 'center', fontVariant: ['tabular-nums'] }}
+            >
+              {settings.newPerHour ?? NEW_PER_HOUR}
+            </AppText>
+            <StepperButton
+              label="+"
+              onPress={() => setNewPerHour((settings.newPerHour ?? NEW_PER_HOUR) + 1)}
+            />
+          </View>
+        </View>
       </Card>
 
       <AppText variant="titleMd" style={{ marginTop: spacing.xs }}>

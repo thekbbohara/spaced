@@ -8,6 +8,7 @@ import {
   startOfDay,
 } from './schedule';
 import { ensurePermission, syncReviewReminders } from './notifications';
+import { updateDueWidget } from './widget';
 import { deleteFile } from './files';
 
 function resourceId(): string {
@@ -33,7 +34,11 @@ export type Card = {
   mastered: boolean;
   starred?: boolean;
   introducedAt?: string | null; // first time the card was graded; gates new-per-hour
+  lapses?: number; // total times forgotten; a "leech" auto-stars at LEECH_LAPSES
 };
+
+// A card forgotten this many times auto-stars as a hard card ("leech").
+export const LEECH_LAPSES = 4;
 
 // At most this many brand-new cards enter due/study within a rolling hour.
 export const NEW_PER_HOUR = 10;
@@ -82,10 +87,15 @@ export type Topic = {
 const KEY = 'topics';
 const SETTINGS_KEY = 'settings';
 
-export type Settings = { remindersEnabled: boolean; reminderHour: number };
+export type Settings = {
+  remindersEnabled: boolean;
+  reminderHour: number;
+  newPerHour?: number; // cap on brand-new cards surfaced per rolling hour
+};
 const DEFAULT_SETTINGS: Settings = {
   remindersEnabled: true,
   reminderHour: DEFAULT_REMINDER_HOUR,
+  newPerHour: NEW_PER_HOUR,
 };
 
 const EMPTY_TOPICS: Topic[] = []; // stable ref for useSyncExternalStore default
@@ -123,14 +133,17 @@ export function dueTodayCount(on: Date = new Date()): number {
   }, 0);
 }
 
-// Reschedule the whole aggregate reminder batch from the current due state.
+// Reschedule the whole aggregate reminder batch from the current due state, and
+// refresh the home-screen widget with the same count.
 export async function syncReminders() {
   const settings = getSettings();
+  const dueCount = dueTodayCount();
   await syncReviewReminders({
     enabled: settings.remindersEnabled,
     hour: settings.reminderHour,
-    dueCount: dueTodayCount(),
+    dueCount,
   });
+  await updateDueWidget(dueCount);
 }
 
 export async function addTopic(
@@ -235,6 +248,7 @@ function makeCard(front: string, back: string): Card {
     mastered: false,
     starred: false,
     introducedAt: null,
+    lapses: 0,
   };
 }
 
@@ -291,6 +305,7 @@ export function gradeCard(topicId: string, cardIdValue: string, good: boolean) {
           ? null
           : startOfDay(addDays(now, intervalForStage(stage))).toISOString()
         : startOfDay(now).toISOString(); // "Again" → still due today
+      const lapses = (c.lapses ?? 0) + (good ? 0 : 1);
       return {
         ...c,
         stage,
@@ -298,8 +313,18 @@ export function gradeCard(topicId: string, cardIdValue: string, good: boolean) {
         lastReviewedAt: now.toISOString(),
         nextReviewAt,
         introducedAt: c.introducedAt ?? now.toISOString(),
+        lapses,
+        starred: c.starred || lapses >= LEECH_LAPSES, // auto-flag leeches
       };
     }),
+  }));
+}
+
+// Overwrite a card with an earlier snapshot — used to undo a grade in the deck.
+export function restoreCard(topicId: string, card: Card) {
+  mutateTopic(topicId, (t) => ({
+    ...t,
+    cards: (t.cards ?? []).map((c) => (c.id === card.id ? card : c)),
   }));
 }
 
@@ -315,7 +340,8 @@ export function availableCards(topic: Topic, on: Date = new Date()): Card[] {
   const introducedThisHour = (topic.cards ?? []).filter(
     (c) => c.introducedAt != null && new Date(c.introducedAt).getTime() >= hourAgo
   ).length;
-  let budget = Math.max(0, NEW_PER_HOUR - introducedThisHour);
+  const limit = getSettings().newPerHour ?? NEW_PER_HOUR;
+  let budget = Math.max(0, limit - introducedThisHour);
   return due.filter((c) => {
     if (!isNewCard(c)) return true;
     if (budget > 0) {
@@ -445,6 +471,11 @@ export async function setRemindersEnabled(enabled: boolean) {
 
 export async function setReminderHour(hour: number) {
   storage.set<Settings>(SETTINGS_KEY, { ...getSettings(), reminderHour: hour });
+  await syncReminders();
+}
+
+export async function setNewPerHour(n: number) {
+  storage.set<Settings>(SETTINGS_KEY, { ...getSettings(), newPerHour: Math.max(0, Math.round(n)) });
   await syncReminders();
 }
 

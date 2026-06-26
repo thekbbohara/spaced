@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react';
-import { Pressable, View } from 'react-native';
-import { colors, spacing } from '@/lib/design';
-import { useTopics, type Topic } from '@/lib/topics';
+import { Modal, Pressable, TextInput, View } from 'react-native';
+import { colors, radius, spacing, type } from '@/lib/design';
+import { reassignGroupTopics, useTopics, type Topic } from '@/lib/topics';
 import {
   GROUP_KIND_LABEL,
   childrenOf,
+  deleteGroup,
   descendantIds,
+  renameGroup,
   useGroups,
   type Group,
 } from '@/lib/groups';
-import { AppText, Badge, Card, Screen } from '@/components/cal';
+import { AppText, Badge, Button, Card, Screen } from '@/components/cal';
 import { TopicRow } from '@/components/topic-card';
 
 function GroupNode({
@@ -19,6 +21,7 @@ function GroupNode({
   byGroup,
   collapsed,
   toggle,
+  onEdit,
 }: {
   group: Group;
   depth: number;
@@ -26,6 +29,7 @@ function GroupNode({
   byGroup: Map<string | null, Topic[]>;
   collapsed: Set<string>;
   toggle: (id: string) => void;
+  onEdit: (group: Group) => void;
 }) {
   const isCollapsed = collapsed.has(group.id);
   const direct = byGroup.get(group.id) ?? [];
@@ -39,6 +43,7 @@ function GroupNode({
     <View>
       <Pressable
         onPress={() => toggle(group.id)}
+        onLongPress={() => onEdit(group)}
         style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -82,6 +87,7 @@ function GroupNode({
               byGroup={byGroup}
               collapsed={collapsed}
               toggle={toggle}
+              onEdit={onEdit}
             />
           ))}
         </View>
@@ -94,6 +100,8 @@ export default function TopicsScreen() {
   const topics = useTopics();
   const groups = useGroups();
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [editing, setEditing] = useState<Group | null>(null);
+  const [renameText, setRenameText] = useState('');
 
   function toggle(id: string) {
     setCollapsed((prev) => {
@@ -101,6 +109,23 @@ export default function TopicsScreen() {
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
+  }
+
+  function openEdit(group: Group) {
+    setEditing(group);
+    setRenameText(group.name);
+  }
+
+  function saveRename() {
+    if (editing && renameText.trim()) renameGroup(editing.id, renameText);
+    setEditing(null);
+  }
+
+  function removeFolder() {
+    if (!editing) return;
+    reassignGroupTopics(editing.id, editing.parentId); // topics move up to the parent
+    deleteGroup(editing.id);
+    setEditing(null);
   }
 
   const byGroup = useMemo(() => {
@@ -136,6 +161,12 @@ export default function TopicsScreen() {
 
   return (
     <Screen>
+      {roots.length > 0 ? (
+        <AppText variant="caption" color={colors.mutedSoft}>
+          Long-press a folder to rename or delete it.
+        </AppText>
+      ) : null}
+
       {roots.map((g) => (
         <GroupNode
           key={g.id}
@@ -145,6 +176,7 @@ export default function TopicsScreen() {
           byGroup={byGroup}
           collapsed={collapsed}
           toggle={toggle}
+          onEdit={openEdit}
         />
       ))}
 
@@ -158,6 +190,64 @@ export default function TopicsScreen() {
           ))}
         </>
       ) : null}
+
+      <Modal
+        visible={editing != null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setEditing(null)}
+      >
+        <Pressable
+          onPress={() => setEditing(null)}
+          style={{
+            flex: 1,
+            backgroundColor: '#00000088',
+            justifyContent: 'center',
+            padding: spacing.lg,
+          }}
+        >
+          <Pressable
+            onPress={() => {}}
+            style={{
+              backgroundColor: colors.canvas,
+              borderRadius: radius.lg,
+              borderCurve: 'continuous',
+              padding: spacing.lg,
+              gap: spacing.sm,
+            }}
+          >
+            <AppText variant="titleMd">Folder</AppText>
+            <TextInput
+              value={renameText}
+              onChangeText={setRenameText}
+              placeholder="Folder name"
+              placeholderTextColor={colors.mutedSoft}
+              autoFocus
+              onSubmitEditing={saveRename}
+              style={{
+                ...type.bodyMd,
+                color: colors.ink,
+                backgroundColor: colors.surfaceCard,
+                borderWidth: 1,
+                borderColor: colors.hairline,
+                borderRadius: radius.md,
+                borderCurve: 'continuous',
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.sm,
+              }}
+            />
+            <Button title="Save name" onPress={saveRename} disabled={!renameText.trim()} />
+            <Button
+              title="Delete folder"
+              variant="secondary"
+              onPress={removeFolder}
+            />
+            <AppText variant="caption" color={colors.mutedSoft}>
+              Deleting keeps the topics — they move up to the parent folder.
+            </AppText>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </Screen>
   );
 }

@@ -6,9 +6,11 @@ import { colors, radius, spacing, type } from '@/lib/design';
 import {
   availableCards,
   gradeCard,
+  restoreCard,
   syncReminders,
   toggleStar,
-  useTopic,
+  updateCard,
+  useTopics,
   type Card,
 } from '@/lib/topics';
 import { AppText, Button } from '@/components/cal';
@@ -67,19 +69,30 @@ export default function StudyScreen() {
     reverse?: string;
     starred?: string;
   }>();
-  const topic = useTopic(id);
+  const topics = useTopics();
+  const isAll = id === 'all'; // mixed review across every topic/folder
+  const topic = isAll ? undefined : topics.find((t) => t.id === id);
 
   // Snapshot the deck once so grading (which mutates the store) doesn't reshuffle
-  // the session under us.
-  const deck = useMemo(() => {
-    if (!topic) return new Map<string, Card>();
-    const pool =
-      starred === '1'
-        ? (topic.cards ?? []).filter((c) => c.starred)
-        : due === '1'
-          ? availableCards(topic)
-          : (topic.cards ?? []);
-    return new Map(pool.map((c) => [c.id, c]));
+  // the session under us. Each card remembers its owning topic so grades route
+  // back correctly in a mixed session.
+  const { deck, topicOf } = useMemo(() => {
+    const map = new Map<string, Card>();
+    const owner = new Map<string, string>();
+    const sources = isAll ? topics : topic ? [topic] : [];
+    for (const t of sources) {
+      const pool =
+        starred === '1'
+          ? (t.cards ?? []).filter((c) => c.starred)
+          : due === '1' || isAll
+            ? availableCards(t)
+            : (t.cards ?? []);
+      for (const c of pool) {
+        map.set(c.id, c);
+        owner.set(c.id, t.id);
+      }
+    }
+    return { deck: map, topicOf: owner };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [queue, setQueue] = useState<string[]>(() => {
@@ -96,6 +109,13 @@ export default function StudyScreen() {
   const [stars, setStars] = useState<Set<string>>(
     () => new Set(Array.from(deck.values()).filter((c) => c.starred).map((c) => c.id))
   );
+  // Pre-grade card snapshots so the last grade can be undone.
+  const [history, setHistory] = useState<{ snapshot: Card; requeued: boolean }[]>([]);
+  // Mid-session card edits override the frozen deck snapshot's content.
+  const [edits, setEdits] = useState<Record<string, { front: string; back: string }>>({});
+  const [editing, setEditing] = useState(false);
+  const [editFront, setEditFront] = useState('');
+  const [editBack, setEditBack] = useState('');
 
   const total = deck.size;
   const currentId = queue[0];
@@ -115,8 +135,11 @@ export default function StudyScreen() {
     }).start();
   }, [flipped, currentId, anim]);
 
-  const prompt = card ? (rev ? card.back : card.front) : '';
-  const answer = card ? (rev ? card.front : card.back) : '';
+  const override = currentId ? edits[currentId] : undefined;
+  const frontText = override?.front ?? card?.front ?? '';
+  const backText = override?.back ?? card?.back ?? '';
+  const prompt = rev ? backText : frontText;
+  const answer = rev ? frontText : backText;
   const isStarred = currentId ? stars.has(currentId) : false;
 
   function flip() {
@@ -138,7 +161,11 @@ export default function StudyScreen() {
 
   function grade(good: boolean) {
     if (!currentId) return;
-    gradeCard(id, currentId, good);
+    const tid = topicOf.get(currentId);
+    if (!tid) return;
+    const snapshot = topics.find((t) => t.id === tid)?.cards?.find((c) => c.id === currentId);
+    gradeCard(tid, currentId, good);
+    if (snapshot) setHistory((h) => [...h, { snapshot, requeued: !good }]);
     if (good) {
       setDone((d) => d + 1);
       nextCard(false);
@@ -148,6 +175,51 @@ export default function StudyScreen() {
     }
   }
 
+  function undo() {
+    if (history.length === 0) return;
+    const last = history[history.length - 1];
+    const cardId = last.snapshot.id;
+    const tid = topicOf.get(cardId);
+    if (tid) restoreCard(tid, last.snapshot); // revert SR fields, lapses, auto-star
+    if (last.requeued) {
+      setQueue((q) => {
+        const i = q.lastIndexOf(cardId);
+        const without = i >= 0 ? [...q.slice(0, i), ...q.slice(i + 1)] : q;
+        return [cardId, ...without];
+      });
+      setAgain((a) => Math.max(0, a - 1));
+    } else {
+      setQueue((q) => [cardId, ...q]);
+      setDone((d) => Math.max(0, d - 1));
+    }
+    setStars((s) => {
+      const next = new Set(s);
+      last.snapshot.starred ? next.add(cardId) : next.delete(cardId);
+      return next;
+    });
+    anim.stopAnimation();
+    anim.setValue(0);
+    setFlipped(false);
+    setChecked(false);
+    setTyped('');
+    setHistory((h) => h.slice(0, -1));
+  }
+
+  function startEdit() {
+    setEditFront(frontText);
+    setEditBack(backText);
+    setEditing(true);
+  }
+
+  function saveEdit() {
+    if (!currentId) return;
+    const tid = topicOf.get(currentId);
+    if (!tid) return;
+    updateCard(tid, currentId, { front: editFront, back: editBack });
+    setEdits((e) => ({ ...e, [currentId]: { front: editFront.trim(), back: editBack.trim() } }));
+    setEditing(false);
+  }
+
   function check() {
     setChecked(true);
     setFlipped(true);
@@ -155,7 +227,9 @@ export default function StudyScreen() {
 
   function star() {
     if (!currentId) return;
-    toggleStar(id, currentId);
+    const tid = topicOf.get(currentId);
+    if (!tid) return;
+    toggleStar(tid, currentId);
     setStars((s) => {
       const next = new Set(s);
       next.has(currentId) ? next.delete(currentId) : next.add(currentId);
@@ -225,11 +299,20 @@ export default function StudyScreen() {
         <AppText variant="caption" color={colors.muted}>
           {done}/{total} done · {queue.length} left
         </AppText>
-        <Pressable onPress={close} hitSlop={12}>
-          <AppText variant="button" color={colors.muted}>
-            Close
-          </AppText>
-        </Pressable>
+        <View style={{ flexDirection: 'row', gap: spacing.md }}>
+          {history.length > 0 ? (
+            <Pressable onPress={undo} hitSlop={12}>
+              <AppText variant="button" color={colors.muted}>
+                ↩ Undo
+              </AppText>
+            </Pressable>
+          ) : null}
+          <Pressable onPress={close} hitSlop={12}>
+            <AppText variant="button" color={colors.muted}>
+              Close
+            </AppText>
+          </Pressable>
+        </View>
       </View>
 
       <View
@@ -260,13 +343,77 @@ export default function StudyScreen() {
           disabled={queue.length < 2}
         />
         <Toggle label={isStarred ? '★ Starred' : '☆ Star'} on={isStarred} onPress={star} />
+        <Toggle label="✎ Edit" on={editing} onPress={editing ? () => setEditing(false) : startEdit} />
       </View>
 
       <View style={{ flex: 1, marginVertical: spacing.md }}>
-        <Pressable
-          onPress={typing && !checked ? undefined : flip}
-          style={{ flex: 1 }}
-        >
+        {editing ? (
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', gap: spacing.xs }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <AppText variant="caption" color={colors.muted}>
+              FRONT
+            </AppText>
+            <TextInput
+              value={editFront}
+              onChangeText={setEditFront}
+              multiline
+              placeholder="Front"
+              placeholderTextColor={colors.mutedSoft}
+              style={{
+                ...type.bodyMd,
+                color: colors.ink,
+                backgroundColor: colors.surfaceCard,
+                borderWidth: 1,
+                borderColor: colors.hairline,
+                borderRadius: radius.md,
+                borderCurve: 'continuous',
+                padding: spacing.md,
+                minHeight: 80,
+              }}
+            />
+            <AppText variant="caption" color={colors.muted} style={{ marginTop: spacing.sm }}>
+              BACK
+            </AppText>
+            <TextInput
+              value={editBack}
+              onChangeText={setEditBack}
+              multiline
+              placeholder="Back"
+              placeholderTextColor={colors.mutedSoft}
+              style={{
+                ...type.bodyMd,
+                color: colors.ink,
+                backgroundColor: colors.surfaceCard,
+                borderWidth: 1,
+                borderColor: colors.hairline,
+                borderRadius: radius.md,
+                borderCurve: 'continuous',
+                padding: spacing.md,
+                minHeight: 80,
+              }}
+            />
+            <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
+              <Button
+                title="Cancel"
+                variant="secondary"
+                style={{ flex: 1 }}
+                onPress={() => setEditing(false)}
+              />
+              <Button
+                title="Save"
+                style={{ flex: 1 }}
+                onPress={saveEdit}
+                disabled={!editFront.trim() || !editBack.trim()}
+              />
+            </View>
+          </ScrollView>
+        ) : (
+          <Pressable
+            onPress={typing && !checked ? undefined : flip}
+            style={{ flex: 1 }}
+          >
           {[
             { face: frontFace, text: prompt, label: 'PROMPT', filled: false },
             { face: backFace, text: answer, label: 'ANSWER', filled: true },
@@ -317,10 +464,11 @@ export default function StudyScreen() {
               </ScrollView>
             </Animated.View>
           ))}
-        </Pressable>
+          </Pressable>
+        )}
       </View>
 
-      {typing && checked ? (
+      {!editing && typing && checked ? (
         <AppText
           variant="bodySm"
           color={correct ? colors.success : colors.error}
@@ -330,7 +478,7 @@ export default function StudyScreen() {
         </AppText>
       ) : null}
 
-      {typing && !checked ? (
+      {editing ? null : typing && !checked ? (
         <View style={{ gap: spacing.sm }}>
           <TextInput
             value={typed}
