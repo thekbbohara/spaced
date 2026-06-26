@@ -9,7 +9,7 @@ import { AppText, Badge, Button, Card, StageDots } from './cal';
 // A due topic with recall actions, shown on the Today screen.
 export function ReviewCard({ topic }: { topic: Topic }) {
   const router = useRouter();
-  const hasAnswer = !!topic.answer;
+  const hasReveal = !!topic.answer || !!topic.keyPoints;
   const [revealed, setRevealed] = useState(false);
 
   function startRecall() {
@@ -45,34 +45,48 @@ export function ReviewCard({ topic }: { topic: Topic }) {
       ) : null}
       <StageDots stage={topic.stage} total={INTERVALS.length} />
 
-      {hasAnswer && revealed ? (
+      {hasReveal && revealed ? (
         <View
           style={{
             backgroundColor: colors.surfaceCard,
             borderRadius: radius.md,
             borderCurve: 'continuous',
             padding: spacing.md,
-            gap: spacing.xxs,
+            gap: spacing.sm,
           }}
         >
-          <AppText variant="caption" color={colors.muted}>
-            ANSWER
-          </AppText>
-          <AppText variant="bodyMd" color={colors.ink} selectable>
-            {topic.answer}
-          </AppText>
+          {topic.answer ? (
+            <View style={{ gap: spacing.xxs }}>
+              <AppText variant="caption" color={colors.muted}>
+                ANSWER
+              </AppText>
+              <AppText variant="bodyMd" color={colors.ink} selectable>
+                {topic.answer}
+              </AppText>
+            </View>
+          ) : null}
+          {topic.keyPoints ? (
+            <View style={{ gap: spacing.xxs }}>
+              <AppText variant="caption" color={colors.muted}>
+                KEY POINTS
+              </AppText>
+              <AppText variant="bodyMd" color={colors.ink} selectable>
+                {topic.keyPoints}
+              </AppText>
+            </View>
+          ) : null}
         </View>
       ) : (
         <AppText variant="caption" color={colors.mutedSoft}>
-          {hasAnswer
-            ? 'Recall the answer from memory, then reveal to check.'
+          {hasReveal
+            ? 'Recall it from memory, then reveal to check.'
             : 'Try to recall it from memory first, then grade yourself.'}
         </AppText>
       )}
 
-      {hasAnswer && !revealed ? (
+      {hasReveal && !revealed ? (
         <Button
-          title="Reveal answer"
+          title="Reveal"
           variant="secondary"
           onPress={() => setRevealed(true)}
           style={{ marginTop: spacing.xxs }}

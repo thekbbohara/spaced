@@ -94,6 +94,17 @@ export default function TopicDetail() {
         </View>
       </Card>
 
+      {topic.keyPoints ? (
+        <Card>
+          <AppText variant="caption" color={colors.muted}>
+            KEY POINTS TO STUDY
+          </AppText>
+          <AppText variant="bodyMd" color={colors.ink} selectable>
+            {topic.keyPoints}
+          </AppText>
+        </Card>
+      ) : null}
+
       {due && <ReviewCard topic={topic} />}
 
       <TopicCards topic={topic} />

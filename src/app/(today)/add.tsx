@@ -6,8 +6,8 @@ export default function AddScreen() {
     <TopicForm
       intro="Add a topic you studied today. We'll resurface it tomorrow, then on an expanding schedule (3, 7, 14, 30+ days) so it sticks."
       submitLabel="Save topic"
-      onSubmit={async ({ title, notes, answer, groupId }) => {
-        await addTopic(title, notes, answer, groupId);
+      onSubmit={async ({ title, notes, answer, groupId, keyPoints }) => {
+        await addTopic(title, notes, answer, groupId, keyPoints);
       }}
     />
   );

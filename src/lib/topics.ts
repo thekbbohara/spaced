@@ -72,6 +72,7 @@ export type Topic = {
   title: string;
   notes: string;
   answer: string; // optional flashcard back; reveal-then-grade
+  keyPoints?: string; // free-form "what to study" — the key points to recall
   resources?: Resource[]; // notes, links, attachments — study hub
   cards?: Card[]; // flashcard deck — per-card spaced repetition
   createdAt: string;
@@ -150,7 +151,8 @@ export async function addTopic(
   title: string,
   notes: string,
   answer = '',
-  groupId: string | null = null
+  groupId: string | null = null,
+  keyPoints = ''
 ): Promise<Topic> {
   const now = new Date();
   const topic: Topic = {
@@ -158,6 +160,7 @@ export async function addTopic(
     title: title.trim(),
     notes: notes.trim(),
     answer: answer.trim(),
+    keyPoints: keyPoints.trim(),
     createdAt: now.toISOString(),
     stage: 0,
     lastReviewedAt: now.toISOString(),
@@ -174,7 +177,13 @@ export async function addTopic(
 
 export async function editTopic(
   id: string,
-  fields: { title: string; notes: string; answer: string; groupId?: string | null }
+  fields: {
+    title: string;
+    notes: string;
+    answer: string;
+    keyPoints?: string;
+    groupId?: string | null;
+  }
 ) {
   let updated: Topic | undefined;
   write(
@@ -185,6 +194,7 @@ export async function editTopic(
         title: fields.title.trim(),
         notes: fields.notes.trim(),
         answer: fields.answer.trim(),
+        keyPoints: fields.keyPoints !== undefined ? fields.keyPoints.trim() : t.keyPoints,
         groupId: fields.groupId !== undefined ? fields.groupId : t.groupId ?? null,
       };
       return updated;

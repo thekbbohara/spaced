@@ -23,6 +23,7 @@ export default function EditScreen() {
           title: topic.title,
           notes: topic.notes,
           answer: topic.answer,
+          keyPoints: topic.keyPoints ?? '',
           groupId: topic.groupId ?? null,
         }}
         submitLabel="Save changes"

@@ -9,6 +9,7 @@ export type TopicFormValues = {
   title: string;
   notes: string;
   answer: string;
+  keyPoints: string;
   groupId: string | null;
 };
 
@@ -56,13 +57,14 @@ export function TopicForm({
   const [title, setTitle] = useState(initial?.title ?? '');
   const [notes, setNotes] = useState(initial?.notes ?? '');
   const [answer, setAnswer] = useState(initial?.answer ?? '');
+  const [keyPoints, setKeyPoints] = useState(initial?.keyPoints ?? '');
   const [groupId, setGroupId] = useState<string | null>(initial?.groupId ?? null);
 
   const canSave = title.trim().length > 0;
 
   async function submit() {
     if (!canSave) return;
-    await onSubmit({ title, notes, answer, groupId });
+    await onSubmit({ title, notes, answer, keyPoints, groupId });
     router.back();
   }
 
@@ -104,6 +106,17 @@ export function TopicForm({
           placeholderTextColor={colors.mutedSoft}
           multiline
           style={[inputStyle, { height: 110, paddingTop: spacing.sm }]}
+        />
+      </Field>
+
+      <Field label="KEY POINTS TO STUDY (OPTIONAL)">
+        <TextInput
+          value={keyPoints}
+          onChangeText={setKeyPoints}
+          placeholder="The main things to remember — one per line works well"
+          placeholderTextColor={colors.mutedSoft}
+          multiline
+          style={[inputStyle, { height: 130, paddingTop: spacing.sm }]}
         />
       </Field>
 
