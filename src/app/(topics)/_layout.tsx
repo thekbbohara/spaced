@@ -22,6 +22,7 @@ export default function TopicsLayout() {
         options={{ presentation: 'modal', headerLargeTitle: false }}
       />
       <Stack.Screen name="cards/[id]" options={{ title: 'Cards', headerLargeTitle: false }} />
+      <Stack.Screen name="folder/[id]" options={{ title: '', headerLargeTitle: false }} />
       <Stack.Screen
         name="study/[id]"
         options={{ headerShown: false, presentation: 'fullScreenModal' }}

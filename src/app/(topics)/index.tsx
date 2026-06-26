@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Modal, Pressable, TextInput, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { colors, radius, spacing, type } from '@/lib/design';
 import { reassignGroupTopics, useTopics, type Topic } from '@/lib/topics';
 import {
@@ -97,6 +98,7 @@ function GroupNode({
 }
 
 export default function TopicsScreen() {
+  const router = useRouter();
   const topics = useTopics();
   const groups = useGroups();
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -217,6 +219,15 @@ export default function TopicsScreen() {
             }}
           >
             <AppText variant="titleMd">Folder</AppText>
+            <Button
+              title="Open folder (stats & study)"
+              variant="secondary"
+              onPress={() => {
+                const target = editing;
+                setEditing(null);
+                if (target) router.push(`/folder/${target.id}`);
+              }}
+            />
             <TextInput
               value={renameText}
               onChangeText={setRenameText}

@@ -15,6 +15,7 @@ import {
   type Card,
   type GradeResult,
 } from '@/lib/topics';
+import { descendantIds, useGroups } from '@/lib/groups';
 import { logEvent } from '@/lib/events';
 import { AppText, Button } from '@/components/cal';
 
@@ -65,13 +66,15 @@ function Toggle({
 export default function StudyScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { id, due, shuffle, reverse, starred } = useLocalSearchParams<{
+  const { id, due, shuffle, reverse, starred, folder } = useLocalSearchParams<{
     id: string;
     due?: string;
     shuffle?: string;
     reverse?: string;
     starred?: string;
+    folder?: string; // when set with id="all", limit to this folder's subtree
   }>();
+  const groups = useGroups();
   const topics = useTopics();
   const isAll = id === 'all'; // mixed review across every topic/folder
   const topic = isAll ? undefined : topics.find((t) => t.id === id);
@@ -82,7 +85,11 @@ export default function StudyScreen() {
   const { deck, topicOf } = useMemo(() => {
     const map = new Map<string, Card>();
     const owner = new Map<string, string>();
-    const sources = isAll ? topics : topic ? [topic] : [];
+    const folderIds = folder ? new Set(descendantIds(groups, folder)) : null;
+    const allSources = folderIds
+      ? topics.filter((t) => t.groupId != null && folderIds.has(t.groupId))
+      : topics;
+    const sources = isAll ? allSources : topic ? [topic] : [];
     for (const t of sources) {
       const pool =
         starred === '1'
