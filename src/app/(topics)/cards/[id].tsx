@@ -35,6 +35,7 @@ function ImagePickRow({
       {uri ? (
         <Image
           source={{ uri }}
+          accessibilityLabel={`${label} image preview`}
           style={{ width: 44, height: 44, borderRadius: radius.sm }}
           contentFit="cover"
         />
@@ -267,6 +268,7 @@ export default function CardsScreen() {
               {c.frontImage || c.backImage ? (
                 <Image
                   source={{ uri: (c.frontImage || c.backImage) as string }}
+                  accessibilityLabel="card image"
                   style={{ width: 36, height: 36, borderRadius: radius.sm }}
                   contentFit="cover"
                 />
@@ -289,7 +291,13 @@ export default function CardsScreen() {
                   {cardStatus(c)}
                 </AppText>
               </View>
-              <Pressable onPress={() => toggleStar(id, c.id)} hitSlop={10}>
+              <Pressable
+                onPress={() => toggleStar(id, c.id)}
+                hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel={c.starred ? 'Unstar card' : 'Star card as hard'}
+                accessibilityState={{ selected: !!c.starred }}
+              >
                 <AppText variant="titleSm" color={c.starred ? colors.warning : colors.mutedSoft}>
                   {c.starred ? '★' : '☆'}
                 </AppText>

@@ -100,6 +100,9 @@ export function Button({
 }) {
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityState={{ disabled: !!disabled }}
       {...props}
       disabled={disabled}
       onPress={(e) => {

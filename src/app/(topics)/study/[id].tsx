@@ -49,6 +49,9 @@ function Toggle({
       onPress={onPress}
       disabled={disabled}
       hitSlop={8}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: !!on, disabled: !!disabled }}
       style={{
         paddingHorizontal: spacing.sm,
         paddingVertical: spacing.xxs,
@@ -322,13 +325,23 @@ export default function StudyScreen() {
         </AppText>
         <View style={{ flexDirection: 'row', gap: spacing.md }}>
           {history.length > 0 ? (
-            <Pressable onPress={undo} hitSlop={12}>
+            <Pressable
+              onPress={undo}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel="Undo last grade"
+            >
               <AppText variant="button" color={colors.muted}>
                 ↩ Undo
               </AppText>
             </Pressable>
           ) : null}
-          <Pressable onPress={close} hitSlop={12}>
+          <Pressable
+            onPress={close}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Close study session"
+          >
             <AppText variant="button" color={colors.muted}>
               Close
             </AppText>
@@ -433,6 +446,8 @@ export default function StudyScreen() {
         ) : (
           <Pressable
             onPress={typing && !checked ? undefined : flip}
+            accessibilityRole="button"
+            accessibilityLabel={`Flashcard showing the ${flipped ? 'answer' : 'prompt'}. Double tap to flip.`}
             style={{ flex: 1 }}
           >
           {[
@@ -473,6 +488,7 @@ export default function StudyScreen() {
                 {f.img ? (
                   <Image
                     source={{ uri: f.img }}
+                    accessibilityLabel={`${f.label.toLowerCase()} image`}
                     style={{
                       width: '100%',
                       height: 200,
