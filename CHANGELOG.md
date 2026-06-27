@@ -3,11 +3,10 @@
 All notable changes to Spaced are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [1.0.1] — 2026-06-27
 
 ### Added
 
-- Android home-screen widget showing cards due today (taps to open).
 - Recall sessions: "Recalled it" launches a 5-min skippable active-recall
   capture (write/voice), logged and viewable.
 - Offline activity log: app opens, topic creation, every review outcome,
@@ -34,6 +33,12 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 - Answer no longer flashes briefly when advancing to the next card.
 
+### Known issues
+
+- Android home-screen widget is not included: `react-native-android-widget`'s
+  headless renderer fails on RN 0.85's mandatory bridgeless architecture, so
+  the widget paints blank. Cut until the library supports bridgeless headless.
+
 ## [1.0.0-beta] — 2026-06-21
 
 First public beta.
@@ -50,5 +55,5 @@ First public beta.
 - Local reminders for due topics and focus-session end
 - Backup export / restore to a single JSON file
 
-[Unreleased]: https://github.com/thekbbohara/spaced/compare/spaced-beta...HEAD
+[1.0.1]: https://github.com/thekbbohara/spaced/compare/spaced-beta...v1.0.1
 [1.0.0-beta]: https://github.com/thekbbohara/spaced/releases/tag/spaced-beta
