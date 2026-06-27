@@ -43,25 +43,7 @@
       ],
       "expo-sqlite",
       "expo-audio",
-      "expo-sharing",
-      [
-        "react-native-android-widget",
-        {
-          "widgets": [
-            {
-              "name": "Due",
-              "label": "Spaced — Due today",
-              "description": "Cards due today. Tap to open Spaced.",
-              "minWidth": "110dp",
-              "minHeight": "110dp",
-              "targetCellWidth": 1,
-              "targetCellHeight": 1,
-              "resizeMode": "horizontal|vertical",
-              "updatePeriodMillis": 1800000
-            }
-          ]
-        }
-      ]
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

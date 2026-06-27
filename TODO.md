@@ -4,7 +4,6 @@ Loose backlog. Grab anything, open an issue, or send a PR. Nothing here is commi
 
 ## Recently shipped
 
-- [x] Android home-screen widget (cards due today)
 - [x] Configurable new-cards-per-hour
 - [x] Cloze deletion cards
 - [x] Images on cards (creation + study view)
@@ -60,6 +59,14 @@ Loose backlog. Grab anything, open an issue, or send a PR. Nothing here is commi
 - [ ] CI: typecheck + lint + bundle on PR
 - [ ] Backup format versioning + migration path
 - [ ] i18n scaffolding
+
+## Blocked
+
+- [ ] Android home-screen widget — built with `react-native-android-widget`, but its
+      headless render task fails on RN 0.85 (mandatory bridgeless/new arch) with
+      "Cannot start headless task, CatalystInstance not available", so the widget
+      paints blank. Old arch is no longer an option (removed in RN 0.82+). Cut from
+      v1; revisit when the lib supports bridgeless headless or switch approach.
 
 ## Known issues
 

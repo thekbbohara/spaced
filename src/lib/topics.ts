@@ -8,7 +8,6 @@ import {
   startOfDay,
 } from './schedule';
 import { ensurePermission, syncReviewReminders } from './notifications';
-import { updateDueWidget } from './widget';
 import { logEvent } from './events';
 import { deleteFile } from './files';
 
@@ -137,8 +136,7 @@ export function dueTodayCount(on: Date = new Date()): number {
   }, 0);
 }
 
-// Reschedule the whole aggregate reminder batch from the current due state, and
-// refresh the home-screen widget with the same count.
+// Reschedule the whole aggregate reminder batch from the current due state.
 export async function syncReminders() {
   const settings = getSettings();
   const dueCount = dueTodayCount();
@@ -147,7 +145,6 @@ export async function syncReminders() {
     hour: settings.reminderHour,
     dueCount,
   });
-  await updateDueWidget(dueCount);
 }
 
 export async function addTopic(
