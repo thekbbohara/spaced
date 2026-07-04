@@ -1,0 +1,104 @@
+---
+const testimonials = [
+    {
+        initials: "SL",
+        name: "Sarah L.",
+        role: "Medical Student",
+        bg: "#dbeafe",
+        color: "#1e40af",
+        quote: "I used to spend more time organizing my Anki decks than actually studying them. Spaced's fast-paste feature and clean UI saved my sanity during anatomy prep.",
+    },
+    {
+        initials: "MJ",
+        name: "Michael J.",
+        role: "Software Engineer",
+        bg: "#fce7f3",
+        color: "#be185d",
+        quote: "The fact that this is 100% offline with zero accounts is incredible. I back up my system architecture JSON file to my own cloud. True privacy.",
+    },
+    {
+        initials: "AT",
+        name: "Anna T.",
+        role: "Language Learner",
+        bg: "#dcfce7",
+        color: "#166534",
+        quote: "The spacing intervals just work. I stopped forgetting my Spanish vocabulary. It's so frictionless compared to the gamified apps that waste your time.",
+    },
+];
+---
+<section class="section container testimonial-section">
+    <div class="swiss-badge" style="display: block; width: max-content; margin: 0 auto 24px;">Loved by students everywhere</div>
+    <div class="grid-3">
+        {testimonials.map(t => (
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="avatar" style={`background: ${t.bg}; color: ${t.color};`}>{t.initials}</div>
+                    <div>
+                        <div class="testimonial-name">{t.name}</div>
+                        <div class="testimonial-role">{t.role}</div>
+                    </div>
+                </div>
+                <p class="body-md">"{t.quote}"</p>
+            </div>
+        ))}
+    </div>
+</section>
+
+<style>
+    .testimonial-section {
+        background: var(--surface-soft);
+        border-radius: 16px;
+        padding: 96px 48px;
+        margin-top: 64px;
+    }
+
+    .testimonial-title {
+        text-align: center;
+        margin-bottom: 48px;
+    }
+
+    .testimonial-card {
+        background: var(--surface-card);
+        border-radius: 12px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .testimonial-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .testimonial-name {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--ink);
+    }
+
+    .testimonial-role {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--muted);
+    }
+
+    @media (max-width: 900px) {
+        .testimonial-section { padding: 48px 16px; }
+    }
+</style>

@@ -1,0 +1,225 @@
+---
+// Hero_A: Swiss Grid / Data Dashboard
+// Extreme precision, hairlines, mono fonts for data.
+---
+<section class="hero-a">
+    <div class="container hero-grid">
+        <div class="hero-content">
+            <div class="swiss-badge">EVIDENCE-BASED STUDY APP</div>
+            <h1 class="swiss-title">Remember more.<br/>Study less.</h1>
+            <p class="swiss-desc">Spaced is a strictly offline study app built on the only two techniques scientifically proven to work: <strong>active recall</strong> and <strong>spaced repetition</strong>.</p>
+            <div class="hero-actions">
+                <a href="https://github.com/thekbbohara/spaced/releases/latest" class="btn-swiss-primary">Download (Android)</a>
+                <a href="#demo" class="btn-swiss-secondary">View Demo</a>
+            </div>
+        </div>
+        
+        <div class="hero-ui">
+            <div class="swiss-card">
+                <div class="swiss-card-header">
+                    <span class="mono-label">SESSION // TODAY</span>
+                    <span class="mono-label-right">SYNC: OFFLINE</span>
+                </div>
+                <div class="swiss-card-body">
+                    <div class="data-grid">
+                        <div class="data-cell">
+                            <div class="data-value">88<span class="pct">%</span></div>
+                            <div class="data-label">RECALL RATE</div>
+                        </div>
+                        <div class="data-cell">
+                            <div class="data-value">14</div>
+                            <div class="data-label">CARDS DUE</div>
+                        </div>
+                        <div class="data-cell full-width">
+                            <div class="data-label mb-1">RETENTION DECAY (EST)</div>
+                            <div class="chart-bar">
+                                <div class="chart-fill" style="width: 88%;"></div>
+                                <div class="chart-line"></div>
+                                <div class="chart-line" style="left: 25%"></div>
+                                <div class="chart-line" style="left: 50%"></div>
+                                <div class="chart-line" style="left: 75%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiss-card-footer">
+                    <div class="deck-row">
+                        <div class="deck-info">
+                            <div class="deck-title">Medical Anatomy</div>
+                            <div class="deck-meta">14 DUE • 5 NEW</div>
+                        </div>
+                        <div class="swiss-btn-small">REVIEW</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .hero-a {
+        padding: 120px 0 80px;
+        background: #ffffff;
+        border-bottom: 1px solid #111;
+        font-family: 'Inter', sans-serif;
+    }
+    .hero-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 64px;
+        align-items: center;
+    }
+    .swiss-badge {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        letter-spacing: 1px;
+        color: #111;
+        border: 1px solid #111;
+        display: inline-block;
+        padding: 4px 8px;
+        margin-bottom: 24px;
+    }
+    .swiss-title {
+        font-size: 64px;
+        line-height: 1.05;
+        font-weight: 600;
+        letter-spacing: -2px;
+        color: #111;
+        margin: 0 0 24px 0;
+    }
+    .swiss-desc {
+        font-size: 18px;
+        line-height: 1.5;
+        color: #444;
+        margin-bottom: 40px;
+        max-width: 480px;
+    }
+    .hero-actions {
+        display: flex;
+        gap: 16px;
+    }
+    .btn-swiss-primary, .btn-swiss-secondary {
+        font-weight: 600;
+        font-size: 14px;
+        padding: 14px 24px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .btn-swiss-primary {
+        background: #111;
+        color: #fff;
+    }
+    .btn-swiss-primary:hover {
+        background: #333;
+    }
+    .btn-swiss-secondary {
+        background: #fff;
+        color: #111;
+        border: 1px solid #111;
+    }
+    .btn-swiss-secondary:hover {
+        background: #f5f5f5;
+    }
+
+    /* Swiss Card UI */
+    .swiss-card {
+        background: #fff;
+        border: 1px solid #111;
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+        box-shadow: 12px 12px 0 rgba(17,17,17,0.05);
+    }
+    .swiss-card-header {
+        border-bottom: 1px solid #111;
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+    }
+    .mono-label, .mono-label-right {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.5px;
+        color: #111;
+    }
+    .mono-label-right { color: #666; }
+    
+    .swiss-card-body {
+        padding: 24px 16px;
+    }
+    .data-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    .full-width { grid-column: 1 / -1; }
+    
+    .data-value {
+        font-size: 48px;
+        font-weight: 600;
+        letter-spacing: -1.5px;
+        line-height: 1;
+        color: #111;
+        margin-bottom: 4px;
+    }
+    .pct { font-size: 24px; color: #666; }
+    .data-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.5px;
+        color: #666;
+    }
+    .mb-1 { margin-bottom: 8px; }
+    
+    .chart-bar {
+        width: 100%;
+        height: 16px;
+        border: 1px solid #111;
+        position: relative;
+    }
+    .chart-fill {
+        height: 100%;
+        background: #111;
+    }
+    .chart-line {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: rgba(255,255,255,0.5);
+    }
+
+    .swiss-card-footer {
+        border-top: 1px solid #111;
+        padding: 16px;
+        background: #fafafa;
+    }
+    .deck-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .deck-title {
+        font-weight: 600;
+        font-size: 15px;
+        color: #111;
+    }
+    .deck-meta {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        color: #666;
+        margin-top: 4px;
+    }
+    .swiss-btn-small {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        background: #111;
+        color: #fff;
+        padding: 6px 12px;
+    }
+
+    @media (max-width: 900px) {
+        .hero-grid { grid-template-columns: 1fr; gap: 48px; }
+        .swiss-title { font-size: 48px; }
+    }
+</style>

@@ -1,0 +1,120 @@
+---
+---
+<section id="compare" class="section container compare-section">
+    <h2 class="display-lg compare-title">Why Spaced?</h2>
+    <div class="table-wrapper">
+        <table class="comp-table">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th class="spaced-col"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:6px;"><path d="M13 2L4.5 13h5l-1.5 9 8.5-11h-5z"/></svg>Spaced</th>
+                    <th><span class="competitor-label">Anki</span></th>
+                    <th><span class="competitor-label">Quizlet</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Algorithm</td>
+                    <td class="spaced-col">Modern Spaced Repetition</td>
+                    <td>Spaced Repetition (Complex)</td>
+                    <td>Basic (Paywalled)</td>
+                </tr>
+                <tr>
+                    <td>Offline First</td>
+                    <td class="spaced-col"><span class="icon-check">✔</span> Yes, 100% Local</td>
+                    <td><span class="icon-check">✔</span> Yes</td>
+                    <td><span class="icon-cross">✘</span> Cloud required</td>
+                </tr>
+                <tr>
+                    <td>No Account</td>
+                    <td class="spaced-col"><span class="icon-check">✔</span> Yes</td>
+                    <td><span class="icon-check">✔</span> Optional</td>
+                    <td><span class="icon-cross">✘</span> Required</td>
+                </tr>
+                <tr>
+                    <td>Cost</td>
+                    <td class="spaced-col"><span class="icon-check">✔</span> 100% Free</td>
+                    <td><span class="icon-check">✔</span> Free (Except iOS)</td>
+                    <td><span class="icon-cross">✘</span> Subscriptions</td>
+                </tr>
+                <tr>
+                    <td>UI/UX</td>
+                    <td class="spaced-col">Modern, Frictionless</td>
+                    <td>Steep learning curve</td>
+                    <td>Gamified</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<style>
+    .compare-title {
+        text-align: center;
+        margin-bottom: 48px;
+    }
+
+    .competitor-label {
+        font-weight: 600;
+        color: var(--muted);
+        font-family: var(--font-mono);
+        text-transform: uppercase;
+    }
+
+    .compare-section {
+        background: var(--surface-card);
+        border-radius: 16px;
+        padding: 96px 48px;
+    }
+
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .comp-table {
+        width: 100%;
+        min-width: 600px;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .comp-table th,
+    .comp-table td {
+        padding: 24px 16px;
+        border-bottom: 1px solid var(--hairline);
+    }
+
+    .comp-table th {
+        font-weight: 600;
+        color: var(--ink);
+        font-size: 18px;
+    }
+
+    .comp-table td {
+        font-size: 16px;
+        color: var(--body);
+    }
+
+    .comp-table td.spaced-col {
+        background: var(--surface-soft);
+        font-weight: 600;
+        color: var(--ink);
+        border-left: 1px solid var(--hairline);
+        border-right: 1px solid var(--hairline);
+    }
+
+    .comp-table th.spaced-col {
+        background: var(--primary);
+        color: #fff;
+        border-radius: 8px 8px 0 0;
+        border: none;
+        text-align: center;
+    }
+
+    .comp-table tr:last-child td.spaced-col {
+        border-radius: 0 0 8px 8px;
+        border-bottom: 1px solid var(--hairline);
+    }
+</style>

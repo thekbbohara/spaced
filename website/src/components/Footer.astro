@@ -1,0 +1,98 @@
+---
+---
+<footer class="footer">
+    <div class="container footer-grid">
+        <div class="footer-brand-col">
+            <div class="footer-brand">SPACED.</div>
+            <p class="footer-tagline">Remember more, study less. Fully offline spaced repetition flashcards.</p>
+            <div class="footer-copy">© 2026 Kb Bohara. MIT License.</div>
+        </div>
+        <div>
+            <h4 class="footer-heading">Product</h4>
+            <div class="footer-links">
+                <a href="https://github.com/thekbbohara/spaced/releases/latest">Download</a>
+                <a href="https://github.com/thekbbohara/spaced">Source Code</a>
+            </div>
+        </div>
+        <div>
+            <h4 class="footer-heading">Learn</h4>
+            <div class="footer-links">
+                <a href="#research">The Science</a>
+                <a href="#compare">Compare</a>
+                <a href="#features">Features</a>
+            </div>
+        </div>
+        <div>
+            <h4 class="footer-heading">Legal</h4>
+            <div class="footer-links">
+                <a href="https://github.com/thekbbohara/spaced/blob/main/PRIVACY.md">Privacy Policy</a>
+                <a href="https://github.com/thekbbohara/spaced/blob/main/LICENSE">License</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<style>
+    .footer {
+        background: var(--surface-dark);
+        color: var(--muted);
+        padding: 96px 0 48px;
+        margin-top: 96px;
+    }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 48px;
+    }
+
+    .footer-brand {
+        font-family: var(--font-mono);
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -1px;
+        margin-bottom: 16px;
+        color: #fff;
+    }
+
+    .footer-tagline {
+        font-size: 14px;
+        margin-bottom: 24px;
+    }
+
+    .footer-copy { font-size: 14px; }
+
+    .footer-heading {
+        font-family: var(--font-mono);
+        text-transform: uppercase;
+        font-size: 13px;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+        padding-bottom: 8px;
+    }
+
+    .footer-links {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .footer-links a {
+        color: var(--muted);
+        font-size: 14px;
+        transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: #fff; }
+
+    @media (max-width: 900px) {
+        .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+    }
+
+    @media (max-width: 480px) {
+        .footer-grid { grid-template-columns: 1fr; }
+    }
+</style>

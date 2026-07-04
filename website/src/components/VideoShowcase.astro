@@ -1,0 +1,50 @@
+---
+---
+<section class="video-showcase">
+    <div class="container">
+        <div class="swiss-badge" style="display: block; width: max-content; margin: 0 auto 24px;">See it in action</div>
+        <div class="video-frame anim-fade-up-delay">
+            <video
+                src="/videos/hero-video.mp4"
+                poster="/images/icon.png"
+                autoplay
+                loop
+                muted
+                playsinline
+                controls
+            ></video>
+        </div>
+    </div>
+</section>
+
+<style>
+    .video-showcase {
+        padding-top: 0;
+        padding-bottom: 48px;
+    }
+
+    .video-label {
+        text-align: center;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--muted);
+        margin-bottom: 24px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .video-frame {
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--hairline);
+        box-shadow: 0 24px 64px rgba(0,0,0,0.08);
+        background: var(--surface-dark);
+    }
+
+    .video-frame video {
+        width: 100%;
+        display: block;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+    }
+</style>

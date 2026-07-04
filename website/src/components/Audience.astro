@@ -1,0 +1,62 @@
+---
+const audiences = [
+    {
+        emoji: "🌍",
+        title: "Language Learners",
+        desc: "Lock in vocabulary, verb conjugations, and grammar rules permanently using precise spacing intervals.",
+    },
+    {
+        emoji: "🩺",
+        title: "Medical & Law Students",
+        desc: "Handle massive volumes of rote memorization (anatomy, case law) without drowning in manual review tracking.",
+    },
+    {
+        emoji: "💻",
+        title: "Developers & Engineers",
+        desc: "Memorize APIs, syntax, and system architecture so you can stay in flow instead of constantly checking documentation.",
+    },
+];
+---
+<section class="section container">
+    <h2 class="display-md audience-title">Built for every student.</h2>
+    <p class="body-md audience-desc">Log literally everything you study, and Spaced will automatically build your reminder schedule. Active recall works universally—whether you're in high school, university, or self-taught.</p>
+    
+    <div class="grid-3">
+        {audiences.map(a => (
+            <div class="audience-card">
+                <div class="audience-emoji">{a.emoji}</div>
+                <h3 class="title-md">{a.title}</h3>
+                <p class="body-sm">{a.desc}</p>
+            </div>
+        ))}
+    </div>
+</section>
+
+<style>
+    .audience-title {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    .audience-desc {
+        text-align: center;
+        max-width: 680px;
+        margin: 0 auto 48px;
+    }
+
+    .audience-card {
+        background: var(--surface-card);
+        border-radius: 12px;
+        padding: 32px 24px;
+    }
+
+    .audience-emoji {
+        font-size: 32px;
+        margin-bottom: 16px;
+        line-height: 1;
+    }
+
+    .audience-card .title-md {
+        margin-bottom: 12px;
+    }
+</style>

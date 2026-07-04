@@ -1,0 +1,269 @@
+/* ================================================
+   SPACED — Global Design System
+   Based on Cal.com editorial aesthetic
+   ================================================ */
+
+:root {
+    --canvas: #ffffff;
+    --primary: #111111;
+    --primary-active: #242424;
+    --surface-card: #f5f5f5;
+    --surface-soft: #f8f9fa;
+    --surface-dark: #101010;
+    --hairline: #e5e7eb;
+    --hairline-soft: #f3f4f6;
+    --ink: #111111;
+    --body: #374151;
+    --muted: #6b7280;
+    --success: #10b981;
+    --brand-accent: #3b82f6;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-display: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Reset */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+    overflow-x: hidden;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--canvas);
+    color: var(--body);
+    line-height: 1.5;
+    overflow-x: hidden;
+}
+
+img, svg, video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* ================================================
+   TYPOGRAPHY
+   ================================================ */
+h1, h2, h3, h4 {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-wrap: balance;
+    overflow-wrap: break-word;
+}
+
+p {
+    text-wrap: pretty;
+    overflow-wrap: break-word;
+}
+
+.display-xl { font-family: var(--font-display); font-size: clamp(40px, 8vw, 80px); line-height: 1; letter-spacing: -3px; font-weight: 800; }
+.display-lg { font-family: var(--font-display); font-size: clamp(28px, 5vw, 48px); line-height: 1.05; letter-spacing: -2px; font-weight: 700; }
+.display-md { font-family: var(--font-display); font-size: clamp(24px, 4vw, 36px); line-height: 1.1; letter-spacing: -1px; font-weight: 700; }
+.display-sm { font-family: var(--font-display); font-size: clamp(22px, 3vw, 28px); line-height: 1.2; letter-spacing: -0.5px; font-weight: 700; }
+
+.title-md { font-size: 18px; line-height: 1.4; color: var(--ink); font-weight: 600; }
+.body-lg  { font-size: 20px; line-height: 1.6; color: var(--body); font-weight: 400; }
+.body-md  { font-size: 16px; line-height: 1.6; color: var(--body); font-weight: 400; }
+.body-sm  { font-size: 14px; line-height: 1.5; color: var(--muted); font-weight: 400; }
+
+.editorial-header {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 24px;
+    display: block;
+}
+
+.swiss-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 12px;
+    background: var(--surface-card);
+    border: 1px solid var(--hairline);
+    border-radius: 9999px;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ================================================
+   LAYOUT
+   ================================================ */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-inline: 24px;
+    width: 100%;
+}
+
+.section {
+    padding-block: 96px;
+    width: 100%;
+}
+
+/* ================================================
+   GRIDS
+   ================================================ */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.bento {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 24px;
+}
+
+.bento-large { grid-column: span 8; }
+.bento-small { grid-column: span 4; }
+
+/* ================================================
+   BUTTONS
+   ================================================ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    min-height: 44px;
+    text-align: center;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+}
+.btn-primary:hover { background: var(--primary-active); }
+
+.btn-secondary {
+    background: var(--canvas);
+    color: var(--ink);
+    border: 1px solid var(--hairline);
+}
+.btn-secondary:hover { background: var(--surface-soft); }
+
+/* ================================================
+   CARDS
+   ================================================ */
+.card-padded {
+    background: var(--surface-card);
+    border-radius: 16px;
+    padding: 96px;
+    text-align: center;
+}
+
+.bento-card {
+    background: var(--surface-card);
+    border-radius: 16px;
+    padding: 48px;
+}
+
+.article-card {
+    background: var(--canvas);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 64px;
+    margin-bottom: 48px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+}
+
+.article-quote {
+    border-left: 4px solid var(--ink);
+    padding-left: 24px;
+    margin: 32px 0;
+    font-size: 20px;
+    font-style: italic;
+    color: var(--ink);
+    font-weight: 500;
+}
+
+/* ================================================
+   ANIMATIONS
+   ================================================ */
+.draw-path {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+}
+
+.fade-up-element {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.is-visible .anim-draw          { animation: drawLine 3s ease-out forwards; }
+.is-visible .anim-draw-delay-1  { animation: drawLine 2s ease-out 1s forwards; }
+.is-visible .anim-draw-delay-2  { animation: drawLine 2s ease-out 2s forwards; }
+.is-visible .anim-grow-1        { animation: growBar1 1.5s ease-out forwards; }
+.is-visible .anim-grow-2        { animation: growBar2 1.5s ease-out 0.5s forwards; }
+.is-visible .anim-fade-in       { animation: fadeUp 1s ease-out forwards; }
+.is-visible .anim-fade-in-delay { animation: fadeUp 1s ease-out 1.5s forwards; }
+
+.anim-fade-up       { opacity: 0; transform: translateY(20px); animation: fadeUp 1s ease-out forwards; }
+.anim-fade-up-delay { opacity: 0; transform: translateY(20px); animation: fadeUp 1s ease-out 1.5s forwards; }
+
+@keyframes drawLine { to { stroke-dashoffset: 0; } }
+@keyframes fadeUp   { to { opacity: 1; transform: translateY(0); } }
+@keyframes growBar1 { to { height: 60px; y: 100; } }
+@keyframes growBar2 { to { height: 130px; y: 30; } }
+
+/* ================================================
+   ICONS
+   ================================================ */
+.icon-check { color: var(--success); font-weight: bold; }
+.icon-cross { color: var(--error); opacity: 0.5; }
+
+/* ================================================
+   RESPONSIVE
+   ================================================ */
+@media (max-width: 900px) {
+    .container { padding-inline: 16px; }
+    .section { padding-block: 64px; }
+
+    .grid-2,
+    .grid-3,
+    .bento { grid-template-columns: 1fr; gap: 32px; }
+
+    .bento-large,
+    .bento-small { grid-column: span 1; }
+
+    .bento-card,
+    .card-padded,
+    .article-card { padding: 24px 16px; }
+
+    .btn { padding: 12px 16px; font-size: 13px; }
+}
