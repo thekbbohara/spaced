@@ -1,0 +1,3 @@
+{
+  "buildCommand": "rm -f ../tsconfig.json && astro build"
+}
